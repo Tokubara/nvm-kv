@@ -33,7 +33,7 @@ OPT += -momit-leaf-frame-pointer
 endif
 else
 $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
-OPT += $(PROFILING_FLAGS)
+OPT += $(PROFILING_FLAGS) -O0
 DEBUG_SUFFIX = "_debug"
 endif
 
@@ -129,3 +129,4 @@ clean:
 	rm -rf $(LIBOUTPUT)
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
+

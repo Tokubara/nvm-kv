@@ -1,3 +1,6 @@
+# VARS_OLD := $(.VARIABLES)
+# first:;
+
 CLEAN_FILES = # deliberately empty, so we can append below.
 CXX=g++
 PLATFORM_LDFLAGS= -lpthread -lrt
@@ -6,6 +9,7 @@ PROFILING_FLAGS=-pg
 OPT=
 LDFLAGS += -Wl,-rpath=$(RPATH)
 
+# {{{1 DEBUG_LEVEL的逻辑
 # DEBUG_LEVEL can have two values:
 # * DEBUG_LEVEL=2; this is the ultimate debug mode. It will compile benchmark
 # without any optimizations. To compile with level 2, issue `make dbg`
@@ -33,8 +37,9 @@ OPT += -momit-leaf-frame-pointer
 endif
 else
 $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
-OPT += $(PROFILING_FLAGS)
+OPT += $(PROFILING_FLAGS) -O0
 DEBUG_SUFFIX = "_debug"
+# 上面这个从来没用到过
 endif
 
 # ----------------Dependences-------------------
@@ -73,6 +78,7 @@ AM_LINK = $(AM_V_CCLD)$(CXX) $^ $(EXEC_LDFLAGS) -o $@ $(LDFLAGS)
 
 CXXFLAGS += -g
 
+# {{{1 第一个目标all
 # This (the first rule) must depend on "all".
 default: all
 
@@ -117,3 +123,7 @@ clean:
 	rm -rf $(LIBOUTPUT)
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
+
+# $(foreach v,                                        \
+#   $(filter-out $(VARS_OLD) VARS_OLD,$(.VARIABLES)), \
+#   $(info $(v) = $($(v))))
