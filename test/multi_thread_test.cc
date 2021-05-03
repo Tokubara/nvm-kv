@@ -10,7 +10,7 @@
 using namespace polar_race;
 
 #define KV_CNT 1000
-#define THREAD_NUM 4
+#define THREAD_NUM 2
 #define CONFLICT_KEY 50
 
 char k[1024];
@@ -18,7 +18,7 @@ char v[9024];
 std::string ks[THREAD_NUM][KV_CNT];
 std::string vs[THREAD_NUM][KV_CNT];
 Engine *engine = NULL;
-
+// {{{1 写后立即读
 void test_thread(int id) {
     RetCode ret;
     std::string value;
@@ -32,6 +32,7 @@ void test_thread(int id) {
     }
 }
 
+// {{{1 id号线程同时写ks[0][i], vs[id][i], 也就是说,写入的key都是一样的, 但是value不一样
 void test_thread_conflict(int id) {
     RetCode ret;
     std::string value;
@@ -56,6 +57,7 @@ int main() {
     assert(ret == kSucc);
     printf("open engine_path: %s\n", engine_path.c_str());
 
+    // {{{1 生成数据, ks,vs, 第一维是进程数, 有4个进程, 第二维是kv对数, 是10000
     for (int t = 0; t < THREAD_NUM; ++t) {
         for (int i = 0; i < KV_CNT; ++i) {
             gen_random(k, 6);
@@ -73,7 +75,8 @@ int main() {
     for (int i = 0; i < THREAD_NUM; ++i) {
         ths[i].join();
     }
-
+    puts("finish phase0");
+// {{{1 再读所有的
     std::string value;
     for (int t = 0; t < THREAD_NUM; ++t) {
         for (int i = 0; i < KV_CNT; ++i) {
@@ -82,7 +85,7 @@ int main() {
             assert(value == vs[t][i]);
         }
     }
-
+    puts("finish phase1");
     ////////////////////////////////////////////////////////////////////
     for (int i = 0; i < THREAD_NUM; ++i) {
         ths[i] = std::thread(test_thread_conflict, i);
@@ -90,6 +93,8 @@ int main() {
     for (int i = 0; i < THREAD_NUM; ++i) {
         ths[i].join();
     }
+    puts("finish phase2");
+    // {{{1 对thread_conflict的检测, value一定要与4个进程之一的相同
     for (int i = 0; i < CONFLICT_KEY; ++i) {
         ret = engine->Read(ks[0][i], &value);
         assert(ret == kSucc);
@@ -103,6 +108,7 @@ int main() {
         }
         assert(found);
     }
+    puts("finish phase3");
 
     delete engine;
 

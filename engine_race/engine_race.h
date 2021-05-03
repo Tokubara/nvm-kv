@@ -61,14 +61,14 @@ public:
           cur = (i8 *)((usize)(cur + 8 + key_sz + val_sz + PAGE_SIZE_M1) & ~PAGE_SIZE_M1); // kv一定是从以一整页开始的
         }
       } while (false);
-      f.fd = open(buf.c_str(), O_RDWR | O_CREAT | O_APPEND | O_DIRECT, 0666); // 就算是文件存在, 这一步也是需要的, 注意是APPEND
+      f.fd = open(buf.c_str(), O_RDWR | O_CREAT | O_APPEND |O_SYNC |O_DIRECT, 0666); // 就算是文件存在, 这一步也是需要的, 注意是APPEND
       // assert(f.fd>0);
       if(f.fd<0) {
         perror("open file fail");
         // fflush(NULL);
-        // exit(-1);
+        exit(-1);
       } else {
-        puts("open file succeed");
+        // puts("open file succeed");
         // fflush(NULL);
       }
       pthread_rwlock_init(&f.lock, nullptr);

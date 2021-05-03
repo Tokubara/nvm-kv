@@ -61,6 +61,7 @@ int main() {
     assert(value == v);
 
     ///////////////////////////////////
+    // {{{1 生成ks,vs_1,vs_2, 长度都是KV_CNT
     for (int i = 0; i < KV_CNT; ++i) {
         gen_random(k, 6);
         ks[i] = std::string(k) + std::to_string(i);
@@ -69,7 +70,7 @@ int main() {
         gen_random(v, 1027);
         vs_2[i] = v;
     }
-
+    // {{{1 写ks,vs_1, 后读, 验证正确性
     for (int i = 0; i < KV_CNT; ++i) {
         ret = engine->Write(ks[i], vs_1[i]);
         assert(ret == kSucc);
@@ -80,14 +81,14 @@ int main() {
         assert(ret == kSucc);
         assert(value == vs_1[i]);
     }
-
+// {{{1 对偶数, 再写vs_2
     for (int i = 0; i < KV_CNT; ++i) {
         if (i % 2 == 0) {
             ret = engine->Write(ks[i], vs_2[i]);
             assert(ret == kSucc);
         }
     }
-
+// {{{1再次读
     for (int i = 0; i < KV_CNT; ++i) {
         ret = engine->Read(ks[i], &value);
         assert(ret == kSucc);
@@ -100,7 +101,7 @@ int main() {
     }
 
     delete engine;
-
+// {{{1 重新打开
     // re-open
     ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
