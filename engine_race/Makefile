@@ -32,14 +32,14 @@ ifeq (,$(shell $(CXX) -fsyntax-only -momit-leaf-frame-pointer -xc /dev/null 2>&1
 OPT += -momit-leaf-frame-pointer
 endif
 else
-$(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
+# $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
 # OPT += $(PROFILING_FLAGS) -O0
 OPT += -O0
 DEBUG_SUFFIX = "_debug"
 endif
 
 # ----------------------------------------------
-SRC_PATH = $(CURDIR)
+# SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
@@ -47,7 +47,7 @@ INCLUDE_PATH = -I./
 
 # ---------------End Dependences----------------
 
-LIB_SOURCES := $(wildcard $(SRC_PATH)/*.cc)
+LIB_SOURCES := $(wildcard *.cc)
 
 #-----------------------------------------------
 
@@ -113,6 +113,7 @@ INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
+# $(info LIBOBJECTS=$(LIBOBJECTS))
 $(LIBOBJECTS): %.o: %.cc %.h
 	  $(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -131,5 +132,5 @@ clean:
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
 
-$(info CXXFLAGS=$(CXXFLAGS))
+# $(info CXXFLAGS=$(CXXFLAGS))
 

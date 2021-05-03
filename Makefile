@@ -36,7 +36,7 @@ ifeq (,$(shell $(CXX) -fsyntax-only -momit-leaf-frame-pointer -xc /dev/null 2>&1
 OPT += -momit-leaf-frame-pointer
 endif
 else
-$(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
+# $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
 OPT += $(PROFILING_FLAGS) -O0
 DEBUG_SUFFIX = "_debug"
 # 上面这个从来没用到过
