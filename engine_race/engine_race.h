@@ -65,11 +65,11 @@ public:
       // assert(f.fd>0);
       if(f.fd<0) {
         perror("open file fail");
-        fflush(NULL);
+        // fflush(NULL);
         // exit(-1);
       } else {
         puts("open file succeed");
-        fflush(NULL);
+        // fflush(NULL);
       }
       pthread_rwlock_init(&f.lock, nullptr);
     }

@@ -113,7 +113,7 @@ INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
-$(LIBOBJECTS): %.o: %.cc
+$(LIBOBJECTS): %.o: %.cc %.h
 	  $(CXX) $(CXXFLAGS) -c $< -o $@
 
 all: $(LIBRARY)
