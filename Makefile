@@ -109,9 +109,12 @@ LIBRARY = $(LIBOUTPUT)/${LIBNAME}.a
 %.o: %.cc
 	  $(AM_V_CC)$(CXX) $(CXXFLAGS) -c $< -o $@
 
-all: $(LIBRARY)
+all: $(LIBRARY) test_sh
 
-dbg: $(LIBRARY)
+test_sh:
+	cd test && bash build.sh
+
+dbg: $(LIBRARY) test_sh
 
 $(LIBRARY):
 	$(AM_V_at)make -C $(SUB_PATH) DEBUG_LEVEL=$(DEBUG_LEVEL) LIBOUTPUT=$(LIBOUTPUT) EXEC_DIR=$(CURDIR)

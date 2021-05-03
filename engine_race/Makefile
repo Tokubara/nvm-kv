@@ -2,7 +2,7 @@ CLEAN_FILES = # deliberately empty, so we can append below.
 CXX=g++
 PLATFORM_LDFLAGS= -lpthread -lrt
 PLATFORM_CXXFLAGS= -std=c++17
-PROFILING_FLAGS=-pg
+# PROFILING_FLAGS=-pg
 OPT=
 LDFLAGS += -Wl,-rpath=$(RPATH)
 
@@ -33,7 +33,8 @@ OPT += -momit-leaf-frame-pointer
 endif
 else
 $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
-OPT += $(PROFILING_FLAGS) -O0
+# OPT += $(PROFILING_FLAGS) -O0
+OPT += -O0
 DEBUG_SUFFIX = "_debug"
 endif
 
@@ -112,8 +113,8 @@ INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
-%.o: %.cc
-	  $(AM_V_CC)$(CXX) $(CXXFLAGS) -c $< -o $@
+$(LIBOBJECTS): %.o: %.cc
+	  $(CXX) $(CXXFLAGS) -c $< -o $@
 
 all: $(LIBRARY)
 

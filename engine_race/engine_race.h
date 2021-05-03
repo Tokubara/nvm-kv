@@ -9,6 +9,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
 
 namespace polar_race {
 using i8 = char;
@@ -60,6 +62,15 @@ public:
         }
       } while (false);
       f.fd = open(buf.c_str(), O_RDWR | O_CREAT | O_APPEND | O_DIRECT, 0666); // 就算是文件存在, 这一步也是需要的, 注意是APPEND
+      // assert(f.fd>0);
+      if(f.fd<0) {
+        perror("open file fail");
+        fflush(NULL);
+        // exit(-1);
+      } else {
+        puts("open file succeed");
+        fflush(NULL);
+      }
       pthread_rwlock_init(&f.lock, nullptr);
     }
     *eptr = ret;
