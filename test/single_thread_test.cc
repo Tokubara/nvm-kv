@@ -20,8 +20,12 @@ int main() {
     printf_(
         "======================= single thread test "
         "============================");
+#ifdef MOCK_NVM
     std::string engine_path =
-        std::string("./data/test-") + std::to_string(asm_rdtsc());
+        std::string("/tmp/ramdisk/data/test-") + std::to_string(asm_rdtsc());
+#else
+    std::string engine_path = "/dev/dax0.0";
+#endif
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
     printf("open engine_path: %s\n", engine_path.c_str());

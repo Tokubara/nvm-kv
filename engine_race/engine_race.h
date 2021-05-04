@@ -53,7 +53,7 @@ public:
         if (fd < 0) { break; }
         struct stat st;
         fstat(fd, &st); // 只是为了获得文件大小
-        i8 *data = (i8 *)mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0); // TODO 还是用了mmap, 不过为什么需要用mmap? 而且也是读映射
+        i8 *data = (i8 *)mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
         for (i8 *cur = data, *end = data + st.st_size; cur < end;) { // 读取整个文件
           u32 key_sz = *(u32 *)cur; // kv是这么放的: 第一个数, 4字节, 是key_size, 然后是key, 然后是value_size, 然后是value
           u32 val_sz = *(u32 *)(cur + 4 + key_sz); // +4表示的是放的第一个是key_size

@@ -1,6 +1,3 @@
-# VARS_OLD := $(.VARIABLES)
-# first:;
-
 CLEAN_FILES = # deliberately empty, so we can append below.
 CXX=g++
 PLATFORM_LDFLAGS= -lpthread -lrt
@@ -9,7 +6,6 @@ PROFILING_FLAGS=-pg
 OPT=
 LDFLAGS += -Wl,-rpath=$(RPATH)
 
-# {{{1 DEBUG_LEVEL的逻辑
 # DEBUG_LEVEL can have two values:
 # * DEBUG_LEVEL=2; this is the ultimate debug mode. It will compile benchmark
 # without any optimizations. To compile with level 2, issue `make dbg`
@@ -36,11 +32,13 @@ ifeq (,$(shell $(CXX) -fsyntax-only -momit-leaf-frame-pointer -xc /dev/null 2>&1
 OPT += -momit-leaf-frame-pointer
 endif
 else
-# $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
-OPT += $(PROFILING_FLAGS) -O0
+$(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
+OPT += $(PROFILING_FLAGS)
 DEBUG_SUFFIX = "_debug"
-# 上面这个从来没用到过
 endif
+
+# ----------------------------------------------
+SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
@@ -78,7 +76,6 @@ AM_LINK = $(AM_V_CCLD)$(CXX) $^ $(EXEC_LDFLAGS) -o $@ $(LDFLAGS)
 
 CXXFLAGS += -g
 
-# {{{1 第一个目标all
 # This (the first rule) must depend on "all".
 default: all
 
@@ -94,39 +91,41 @@ CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_PATH) $(PLATFORM_CXXFLAGS) $(OPT)
 
 LDFLAGS += $(PLATFORM_LDFLAGS)
 
-# ----------------------------------------------
-ifeq ($(TARGET_ENGINE),)
-TARGET_ENGINE = engine_tth
+LIBOBJECTS = $(LIB_SOURCES:.cc=.o)
+# if user didn't config LIBNAME, set the default
+ifeq ($(LIBNAME),)
+# we should only run benchmark in production with DEBUG_LEVEL 0
+LIBNAME=libengine$(DEBUG_SUFFIX)
 endif
-SUB_PATH = $(CURDIR)/$(TARGET_ENGINE)
 
-LIBOUTPUT = $(CURDIR)/lib
+ifeq ($(LIBOUTPUT),)
+LIBOUTPUT=$(CURDIR)/lib
+endif
+
+ifeq ($(EXEC_DIR),)
+EXEC_DIR=$(CURDIR)
+endif
+
 dummy := $(shell mkdir -p $(LIBOUTPUT))
 LIBRARY = $(LIBOUTPUT)/${LIBNAME}.a
+INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
 %.o: %.cc
 	  $(AM_V_CC)$(CXX) $(CXXFLAGS) -c $< -o $@
 
-all: $(LIBRARY) test_sh
+all: $(LIBRARY)
 
-test_sh:
-	cd test && bash build.sh
+dbg: $(LIBRARY)
 
-dbg: $(LIBRARY) test_sh
-
-$(LIBRARY):
-	$(AM_V_at)make -C $(SUB_PATH) DEBUG_LEVEL=$(DEBUG_LEVEL) LIBOUTPUT=$(LIBOUTPUT) EXEC_DIR=$(CURDIR)
+$(LIBRARY): $(LIBOBJECTS)
+	$(AM_V_at)rm -f $@
+	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(LIBOBJECTS)
 	
 clean:
-	make -C $(SUB_PATH)  LIBOUTPUT=$(LIBOUTPUT) clean
 	rm -f $(LIBRARY)
 	rm -rf $(CLEAN_FILES)
 	rm -rf $(LIBOUTPUT)
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
-
-# $(foreach v,                                        \
-#   $(filter-out $(VARS_OLD) VARS_OLD,$(.VARIABLES)), \
-#   $(info $(v) = $($(v))))
