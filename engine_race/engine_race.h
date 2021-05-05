@@ -49,12 +49,7 @@ class EngineRace : public Engine {
 
   static RetCode Open(const std::string& name, Engine** eptr);
 
-  explicit EngineRace(const std::string& dir)
-      : dir_name(dir)
-  {
-  }
-
-  ~EngineRace();
+  ~EngineRace() override;
 
   RetCode Write(const PolarString& key,
       const PolarString& value) override;
@@ -74,15 +69,6 @@ class EngineRace : public Engine {
 
   // helper function to read data file
   int read_data_file(i32 fd, Location *loc, char *buf);
-
-  RetCode read_index_file(int bucket_id, int& fd);
-
-  // hash: stirng --> one bucket
-  size_t calculate_bucket_id(const std::string& key)
-  {
-    std::hash<std::string> hash_func;
-    return hash_func(key) % BUCKET_NUM;
-  }
 };
 
 } // namespace polar_race

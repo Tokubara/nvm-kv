@@ -16,6 +16,8 @@ RetCode Engine::Open(const std::string& name, Engine** eptr) {
   return EngineRace::Open(name, eptr);
 }
 
+Engine::~Engine(){}
+
 // 1. Open engine
 // check if index.tmp exists
 // if yes, maybe a crash just happened, combine the index
@@ -23,7 +25,8 @@ RetCode Engine::Open(const std::string& name, Engine** eptr) {
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
   log_trace("Open %s", name.c_str());
   *eptr = NULL;
-  EngineRace *engine = new EngineRace(name);
+  EngineRace *engine = new EngineRace();
+  engine->dir_name = name;
   std::string buf = "mkdir -p " + name;
   if (system(buf.c_str()) != 0) {
     return kIOError;
@@ -194,8 +197,7 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   pthread_rwlock_rdlock(&f.lock);
   auto it = f.map.find(key);
   if (it != f.map.end()) {
-    ret = kNotFound;
-  } else {
+    ret = kSucc;
     char buf[4097]; // TODO value的大小到底是多少?可能需要改
     Location *loc = it->second;
     assert(read_data_file(f.data_fd, loc, buf) == 0);
