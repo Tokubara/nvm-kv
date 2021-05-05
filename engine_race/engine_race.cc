@@ -183,7 +183,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
 
   // 维护各个字段
   f.data_offset += value.size();
-  f.key_mmap_cur = f.key_mmap_cur + 4 + key.size();
+  f.key_mmap_cur = f.key_mmap_cur + 4 + key.size()+location_sz;
 
   pthread_rwlock_unlock(&f.lock);
   return kSucc;
@@ -214,7 +214,7 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
 int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
   lseek(fd, loc->offset, SEEK_SET);
   char *pos = buf;
-  u32 value_len = loc->len;
+  u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
 
   while (value_len > 0) {
     ssize_t r = read(fd, pos, value_len);
