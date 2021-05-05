@@ -21,7 +21,7 @@ RetCode Engine::Open(const std::string& name, Engine** eptr) {
 // if yes, maybe a crash just happened, combine the index
 // if no, load index
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
-  log_trace("Open");
+  log_trace("Open %s", name.c_str());
   *eptr = NULL;
   EngineRace *engine = new EngineRace(name);
   std::string buf = "mkdir -p " + name;
@@ -36,18 +36,24 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
 
   struct stat st; // 也是循环中临时变量的性质
   st.st_size = 0; // 没什么用, 只是为了编译警告
+
+  std::string data_file_name;
+  std::string index_file_name; 
   // init every bucket
   for (size_t i = 0; i < BUCKET_NUM; i++) {
     u32 key_count = 0;
     std::string suffix = std::to_string(i);
+    index_file_name = name + "/index_" + suffix;
+    data_file_name = name + "/data_" + suffix;
     // int fd_index;
     Bucket &f = engine->buckets[i];
-    key_fd = open( (name + "/index_" + suffix).c_str(), O_RDWR, 0666);
+    key_fd = open(index_file_name.c_str(), O_RDWR, 0666);
     // {{{2 目录已存在
     if (key_fd > 0) {
+  log_trace("engine exists");
       // 维护各个字段
       // 再打开数据文件
-      data_fd = open((name + "/data_" + suffix).c_str(), O_RDWR, 0666);
+      data_fd = open(data_file_name.c_str(), O_RDWR, 0666);
       if (data_fd < 0) {
         log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
         perror("open data file fail");

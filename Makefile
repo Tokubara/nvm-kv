@@ -96,7 +96,7 @@ LDFLAGS += $(PLATFORM_LDFLAGS)
 
 # ----------------------------------------------
 ifeq ($(TARGET_ENGINE),)
-TARGET_ENGINE = engine_tth
+TARGET_ENGINE = engine_race
 endif
 SUB_PATH = $(CURDIR)/$(TARGET_ENGINE)
 

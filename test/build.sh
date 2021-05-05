@@ -8,5 +8,6 @@ rm -rf /tmp/ramdisk/data/test-*
 for f in ${test[@]}; do
     exe=$(echo $f | cut -d . -f1)
     echo $f
-    g++ -std=c++14 -O0 -o  $exe -g -I.. $f  -L../lib -L $MHOME/Playground/lib/ubuntu/lib  -lengine_debug -lpthread -DMOCK_NVM -l log_c
+    # g++ -std=c++17 -O0 -o  $exe -g -I.. $f  -L../lib -L $MHOME/Playground/lib/ubuntu/lib  -lengine_debug -lpthread -DMOCK_NVM -l log_c
+    g++ -std=c++17 -O0 -o  $exe -g -I.. $f  -L../lib -L $MHOME/Playground/lib/ubuntu/lib  -lengine_debug -lpthread -l log_c
 done
