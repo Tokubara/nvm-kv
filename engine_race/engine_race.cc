@@ -23,7 +23,7 @@ Engine::~Engine(){}
 // if yes, maybe a crash just happened, combine the index
 // if no, load index
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
-  log_trace("Open %s", name.c_str());
+  log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
   *eptr = NULL;
   EngineRace *engine = new EngineRace();
   engine->dir_name = name;
@@ -213,7 +213,7 @@ int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
   u32 value_len = loc->len;
 
   while (value_len > 0) {
-    ssize_t r = read(fd, buf, value_len);
+    ssize_t r = read(fd, pos, value_len);
     if (r < 0) {
       if (errno == EINTR) {
         continue; // Retry

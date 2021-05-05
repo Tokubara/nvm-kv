@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <string>
 #include <map>
-#define BUCKET_NUM 30
+#define BUCKET_NUM 8
 
 namespace polar_race {
 
