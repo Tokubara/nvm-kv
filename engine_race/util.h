@@ -29,6 +29,7 @@ inline int FileAppend(int fd, const std::string &value) {
             if (errno == EINTR) {
                 continue; // Retry
             }
+            perror("file write fail");
             return -1;
         }
         pos += r;

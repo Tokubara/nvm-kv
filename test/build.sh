@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# test=('single_thread_test.cc' 'multi_thread_test.cc' 'crash_test.cc' 'range_test.cc')
+test=('single_thread_test.cc' 'multi_thread_test.cc' 'crash_test.cc' 'range_test.cc')
 # test=('single_thread_test.cc' 'multi_thread_test.cc' 'crash_test.cc')
-test=('range_test.cc')
 
-rm -rf /tmp/ramdisk/data/test-*
+rm -rf data/test-*
+# rm -rf /tmp/ramdisk/data/test-*
 for f in ${test[@]}; do
     exe=$(echo $f | cut -d . -f1)
     echo $f

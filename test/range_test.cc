@@ -60,7 +60,7 @@ int main() {
         CountVisitor v(cnt);
         ret = engine->Range(ks[lo], ks[hi], v);
         assert(ret == kSucc);
-        color_idebug(cnt,hi-lo);
+        log_trace("cnt=%d,hi-lo=%d",cnt,hi-lo);
         assert(cnt == hi - lo);
     }
   // 左边没有, 右边有

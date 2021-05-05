@@ -69,6 +69,7 @@ class EngineRace : public Engine {
 
   // helper function to read data file
   int get_string_from_location(i32 fd, Location* loc, std::string *value);
+  // 仅仅是为了hash
 };
 
 } // namespace polar_race

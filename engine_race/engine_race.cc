@@ -9,8 +9,13 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ctype.h>
+#include <string.h>
 #include <cassert>
 namespace polar_race {
+
+#define which_bucket(ch) (ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)  )/num_per_bucket)
+const u8 num_per_bucket = 62/BUCKET_NUM;
 
 RetCode Engine::Open(const std::string& name, Engine** eptr) {
   return EngineRace::Open(name, eptr);
@@ -149,7 +154,8 @@ EngineRace::~EngineRace() {
 // memcpy就行了
 RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // 放入到合适的桶中
-  size_t bucket_id = (u8)key[0] % BUCKET_NUM;
+  u8 bucket_id = which_bucket(key[0]);
+  Assert(bucket_id<BUCKET_NUM, "char=%c, bucket_id=%u", key[0], bucket_id);
   Bucket &f = buckets[bucket_id];
   pthread_rwlock_wrlock(&f.lock);
   // {{{2 写入data文件, 而且必须先写data
@@ -192,7 +198,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
 
 // {{{1 Read
 RetCode EngineRace::Read(const PolarString &key, std::string *value) {
-  size_t bucket_id = (u8)key[0] % BUCKET_NUM;
+  u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
   RetCode ret = kNotFound;
   pthread_rwlock_rdlock(&f.lock);
@@ -231,6 +237,7 @@ int EngineRace::get_string_from_location(i32 fd, Location* loc, std::string *val
   *value = std::string(buf, loc->len);
   return 0;
 }
+
 
 // seek and read
 // int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
@@ -279,7 +286,9 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
   for(u8 i = lo_bid; i <= hi_bid; i++) {
     pthread_rwlock_rdlock(&buckets[i].lock);
   }
+  u32 total_count = 0; // DEBUG
   for(u8 i = lo_bid; i <= hi_bid; i++) {
+    u32 local_count = 0; // DEBUG
     Bucket &f = buckets[i];
     // 上界不为end, 只有一种情况: i是最后一个, 而且len还不为0
     auto lower_bound = f.map.cbegin();
@@ -292,10 +301,14 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
     }
     std::string value;
     for(auto it = lower_bound; it != upper_bound; it++) {
+      local_count++;
       get_string_from_location(f.data_fd, it->second, &value);
       visitor.Visit(it->first, value);
     }
+    total_count+=local_count;
+    log_trace("bucket %u: count=%u", (u32)i, local_count);
   }
+  log_trace("totol count from %u to %u is %u", (u32)lo_bid, (u32)hi_bid, total_count);
   for(u8 i = lo_bid; i <= hi_bid; i++) {
     pthread_rwlock_unlock(&buckets[i].lock);
   }
