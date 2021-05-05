@@ -3,6 +3,7 @@
 
 #include <string>
 #include <thread>
+#include <mylib.h>
 
 #include "include/engine.h"
 #include "test_util.h"
@@ -28,7 +29,7 @@ void test_thread(int id) {
 
         ret = engine->Read(ks[id][i], &value);
         assert(ret == kSucc);
-        assert(value == vs[id][i]);
+        Assert(value == vs[id][i], "id=%d, i=%d",id, i);
     }
 }
 

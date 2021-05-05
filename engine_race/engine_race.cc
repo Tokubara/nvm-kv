@@ -149,13 +149,16 @@ EngineRace::~EngineRace() {
 // 需要维护的是2部分: index数组, 还有写文件, 不需要直接write, 是通过mmap的方式,
 // memcpy就行了
 RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
+  log_trace("enter Write");
   // 放入到合适的桶中
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
   pthread_rwlock_wrlock(&f.lock);
+  log_trace("get lock");
   // {{{2 写入data文件, 而且必须先写data
   assert(FileAppend(f.data_fd, value.data(), value.size()) ==
          0); // write value data
+  log_trace("write data done");
   // int ret = FileAppend(f.data_fd, value.data(), value.size()); // write value
   // data if(ret<0) {
   //   log_fatal("append data file fail, path=%s, id=%d",
@@ -188,11 +191,13 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   f.key_mmap_cur = f.key_mmap_cur + 4 + key.size()+location_sz;
 
   pthread_rwlock_unlock(&f.lock);
+  log_trace("finish Write");
   return kSucc;
 }
 
 // {{{1 Read
 RetCode EngineRace::Read(const PolarString &key, std::string *value) {
+  log_trace("enter Read");
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
   RetCode ret = kNotFound;
@@ -207,11 +212,12 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
     }
   }
   pthread_rwlock_unlock(&f.lock);
+  log_trace("finish Read");
   return ret;
 }
 
+char buf[4097];
 int EngineRace::get_string_from_location(i32 fd, Location* loc, std::string *value) {
-  char buf[4097];
   lseek(fd, loc->offset, SEEK_SET);
   char *pos = buf;
   u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
