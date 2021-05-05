@@ -66,7 +66,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       data_offset = st.st_size;
 
       // mmap
-      assert(fstat(key_fd, &st)); // 只是为了获得文件大小
+      assert(fstat(key_fd, &st)==0); // 只是为了获得文件大小
       assert(st.st_size == key_file_size);
       data = (u8 *)mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
