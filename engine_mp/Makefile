@@ -1,19 +1,10 @@
 CLEAN_FILES = # deliberately empty, so we can append below.
 CXX=g++
 PLATFORM_LDFLAGS= -lpthread -lrt
-PLATFORM_CXXFLAGS= -std=c++17
-# PROFILING_FLAGS=-pg
+PLATFORM_CXXFLAGS= -std=c++11
+PROFILING_FLAGS=-pg
 OPT=
 LDFLAGS += -Wl,-rpath=$(RPATH)
-
-# set MOCK_NVM to 1 (true) by default.
-# * MOCK_NVM=1; the host is not equipped with NVM, so it is mock by ramdisk at (/tmp/ramdisk/db).
-# * MOCK_NVM=0; the host is equipped with NVM mounted at (/dev/dax0.0)
-MOCK_NVM?=1
-
-ifeq ($(MOCK_NVM),1)
-  OPT += -DMOCK_NVM
-endif
 
 # DEBUG_LEVEL can have two values:
 # * DEBUG_LEVEL=2; this is the ultimate debug mode. It will compile benchmark
@@ -41,22 +32,21 @@ ifeq (,$(shell $(CXX) -fsyntax-only -momit-leaf-frame-pointer -xc /dev/null 2>&1
 OPT += -momit-leaf-frame-pointer
 endif
 else
-# $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
-# OPT += $(PROFILING_FLAGS) -O0
-OPT += -O0
+$(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
+OPT += $(PROFILING_FLAGS)
 DEBUG_SUFFIX = "_debug"
 endif
 
 # ----------------------------------------------
-# SRC_PATH = $(CURDIR)
+SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
-INCLUDE_PATH = -I./ 
+INCLUDE_PATH = -I./ -I $$MHOME/Playground/lib/ubuntu/header
 
 # ---------------End Dependences----------------
 
-LIB_SOURCES := $(wildcard *.cc)
+LIB_SOURCES := $(wildcard $(SRC_PATH)/*.cc)
 
 #-----------------------------------------------
 
@@ -122,9 +112,8 @@ INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
-# $(info LIBOBJECTS=$(LIBOBJECTS))
-$(LIBOBJECTS): %.o: %.cc %.h
-	  $(CXX) $(CXXFLAGS) -c $< -o $@
+%.o: %.cc
+	  $(AM_V_CC)$(CXX) $(CXXFLAGS) -c $< -o $@
 
 all: $(LIBRARY)
 
@@ -140,6 +129,5 @@ clean:
 	rm -rf $(LIBOUTPUT)
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
-
-# $(info CXXFLAGS=$(CXXFLAGS))
-
+$(info INCLUDE_PATH=$(INCLUDE_PATH))
+$(info CURDIR=$(CURDIR))

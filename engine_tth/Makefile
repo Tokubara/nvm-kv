@@ -129,3 +129,5 @@ clean:
 	rm -rf $(LIBOUTPUT)
 	find $(SRC_PATH) -maxdepth 1 -name "*.[oda]*" -exec rm -f {} \;
 	find $(SRC_PATH) -maxdepth 1 -type f -regex ".*\.\(\(gcda\)\|\(gcno\)\)" -exec rm {} \;
+$(info INCLUDE_PATH=$(INCLUDE_PATH))
+$(info CURDIR=$(CURDIR))
