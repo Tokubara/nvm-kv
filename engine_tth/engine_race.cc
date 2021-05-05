@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <mylib.h>
 namespace polar_race {
 
 int EngineRace::fd_index_tmp[EngineRace::thread_cnt] = {};
@@ -65,6 +66,7 @@ RetCode EngineRace::read_index_file(int bucket_id, int &fd) { // fd并不会改�
 // if yes, maybe a crash just happened, combine the index
 // if no, load index
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
+    log_trace("Open");
     *eptr = NULL;
     log("Opening file");
     EngineRace *engine_race = new EngineRace(name);

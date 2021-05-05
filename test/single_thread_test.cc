@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string>
 
 #include "include/engine.h"
@@ -21,6 +22,7 @@ int main() {
         "======================= single thread test "
         "============================");
 #ifdef MOCK_NVM
+    system("rm -rf /tmp/ramdisk/data/*"); // 否则1g存储, 根本不够用, posix_fallocate会报错
     std::string engine_path =
         std::string("/tmp/ramdisk/data/test-") + std::to_string(asm_rdtsc());
 #else

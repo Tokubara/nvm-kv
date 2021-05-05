@@ -42,7 +42,7 @@ SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
-INCLUDE_PATH = -I./ 
+INCLUDE_PATH = -I./ -I $$MHOME/Playground/lib/ubuntu/header
 
 # ---------------End Dependences----------------
 
