@@ -59,7 +59,8 @@ int main() {
         int cnt = 0;
         CountVisitor v(cnt);
         ret = engine->Range(ks[lo], ks[hi], v);
-        assert(ret == kSucc);;
+        assert(ret == kSucc);
+        color_idebug(cnt,hi-lo);
         assert(cnt == hi - lo);
     }
   // 左边没有, 右边有

@@ -277,12 +277,15 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
     hi_bid = (u8)upper[0]%BUCKET_NUM;
   }
   for(u8 i = lo_bid; i <= hi_bid; i++) {
+    pthread_rwlock_rdlock(&buckets[i].lock);
+  }
+  for(u8 i = lo_bid; i <= hi_bid; i++) {
     Bucket &f = buckets[i];
     // 上界不为end, 只有一种情况: i是最后一个, 而且len还不为0
     auto lower_bound = f.map.cbegin();
     auto upper_bound = f.map.cend();
     if(i==hi_bid && hi_nempty) {
-      upper_bound = f.map.upper_bound(upper.ToString());
+      upper_bound = f.map.lower_bound(upper.ToString());
     }
     if(i==lo_bid && lo_nempty) {
       lower_bound = f.map.lower_bound(lower.ToString());
@@ -292,6 +295,9 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
       get_string_from_location(f.data_fd, it->second, &value);
       visitor.Visit(it->first, value);
     }
+  }
+  for(u8 i = lo_bid; i <= hi_bid; i++) {
+    pthread_rwlock_unlock(&buckets[i].lock);
   }
   return kSucc;
 }
