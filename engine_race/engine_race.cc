@@ -14,8 +14,8 @@
 #include <cassert>
 namespace polar_race {
 
-#define which_bucket(ch) (ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)  )/num_per_bucket)
-const u8 num_per_bucket = 62/BUCKET_NUM;
+#define which_bucket(ch) ((ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)))/num_per_bucket)
+const u8 num_per_bucket = (62+BUCKET_NUM-1)/BUCKET_NUM;
 
 RetCode Engine::Open(const std::string& name, Engine** eptr) {
   return EngineRace::Open(name, eptr);
@@ -28,7 +28,7 @@ Engine::~Engine(){}
 // if yes, maybe a crash just happened, combine the index
 // if no, load index
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
-  log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
+  // log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
   *eptr = NULL;
   EngineRace *engine = new EngineRace();
   engine->dir_name = name;
@@ -58,12 +58,12 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
     key_fd = open(index_file_name.c_str(), O_RDWR, 0666);
     // {{{2 目录已存在
     if (key_fd > 0) {
-  log_trace("engine exists");
+  // log_trace("engine exists");
       // 维护各个字段
       // 再打开数据文件
       data_fd = open(data_file_name.c_str(), O_RDWR, 0666);
       if (data_fd < 0) {
-        log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
+        // log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
         perror("open data file fail");
         return kIOError;
       }
@@ -85,7 +85,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
         u32 key_sz = *(u32 *)cur;
 
         if (key_sz == 0) {
-          log_trace("index file finish, key_count:%u", key_count);
+          // log_trace("index file finish, key_count:%u", key_count);
           break;
         } else {
           f.map.insert_or_assign(std::string((char*)cur + 4, key_sz),
@@ -139,7 +139,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
 
 // {{{1 析构
 EngineRace::~EngineRace() {
-  log_trace("Saving index");
+  // log_trace("Saving index");
   for (size_t i = 0; i < BUCKET_NUM; i++) {
     Bucket &f = buckets[i];
     munmap(f.key_mmap, key_file_size); // 因为的确用不着了, 信息都在index中
@@ -155,7 +155,6 @@ EngineRace::~EngineRace() {
 RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // 放入到合适的桶中
   u8 bucket_id = which_bucket(key[0]);
-  Assert(bucket_id<BUCKET_NUM, "char=%c, bucket_id=%u", key[0], bucket_id);
   Bucket &f = buckets[bucket_id];
   pthread_rwlock_wrlock(&f.lock);
   // {{{2 写入data文件, 而且必须先写data
@@ -278,10 +277,10 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
   bool lo_nempty = (lower.size()!=0);
   bool hi_nempty = (upper.size()!=0);
   if(lo_nempty) {
-    lo_bid = (u8)lower[0]%BUCKET_NUM;
+    lo_bid = which_bucket(lower[0]);
   }
   if(hi_nempty) {
-    hi_bid = (u8)upper[0]%BUCKET_NUM;
+    hi_bid = which_bucket(upper[0]);
   }
   for(u8 i = lo_bid; i <= hi_bid; i++) {
     pthread_rwlock_rdlock(&buckets[i].lock);
@@ -306,9 +305,9 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
       visitor.Visit(it->first, value);
     }
     total_count+=local_count;
-    log_trace("bucket %u: count=%u", (u32)i, local_count);
+    // log_trace("bucket %u: count=%u", (u32)i, local_count);
   }
-  log_trace("totol count from %u to %u is %u", (u32)lo_bid, (u32)hi_bid, total_count);
+  // log_trace("totol count from %u to %u is %u", (u32)lo_bid, (u32)hi_bid, total_count);
   for(u8 i = lo_bid; i <= hi_bid; i++) {
     pthread_rwlock_unlock(&buckets[i].lock);
   }
