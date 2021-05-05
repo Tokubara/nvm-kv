@@ -6,7 +6,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <string>
-#include <unordered_map>
+#include <map>
 #define BUCKET_NUM 30
 
 namespace polar_race {
@@ -16,20 +16,12 @@ using i32 = int;
 using isize = ssize_t;
 using u8 = unsigned char;
 using u32 = unsigned;
+using u64 = unsigned long;
 using usize = size_t;
 
 inline bool operator<(const PolarString& l, const PolarString& r)
 {
   return l.compare(r) < 0;
-}
-struct Bucket {
-  std::map<std::string, Location*, std::less<>> map;
-  i32 key_fd;
-  i32 data_fd;
-  u8* key_mmap;
-  u8* key_mmap_cur;
-
-  pthread_rwlock_t lock;
 }
 
 struct Location {
@@ -37,11 +29,21 @@ struct Location {
   size_t len;    // byte length of the data string
 };
 
+struct Bucket {
+  std::map<std::string, Location*, std::less<>> map;
+  i32 key_fd;
+  i32 data_fd;
+  u32 data_offset;
+  u8* key_mmap;
+  u8* key_mmap_cur;
+
+  pthread_rwlock_t lock;
+};
 const u64 location_sz = sizeof(Location);
 
 class EngineRace : public Engine {
   public:
-  static const size_t chunckSize = 128 * 1024 * 1024; // 128MB
+  static const size_t key_file_size = 128 * 1024 * 1024; // 128MB
   Bucket buckets[BUCKET_NUM];
   std::string dir_name;
 
@@ -71,7 +73,7 @@ class EngineRace : public Engine {
   // private: // DEBUG
 
   // helper function to read data file
-  size_t read_data_file(size_t bucket_id, Location& loc, char* buf);
+  int read_data_file(i32 fd, Location *loc, char *buf);
 
   RetCode read_index_file(int bucket_id, int& fd);
 
@@ -79,7 +81,7 @@ class EngineRace : public Engine {
   size_t calculate_bucket_id(const std::string& key)
   {
     std::hash<std::string> hash_func;
-    return hash_func(key) % thread_cnt;
+    return hash_func(key) % BUCKET_NUM;
   }
 };
 

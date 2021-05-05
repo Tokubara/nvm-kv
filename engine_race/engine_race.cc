@@ -9,57 +9,12 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cassert>
 namespace polar_race {
 
-int EngineRace::fd_index_tmp[EngineRace::BUCKET_NUM] = {};
-
-RetCode Engine::Open(const std::string &name, Engine **eptr) {
+RetCode Engine::Open(const std::string& name, Engine** eptr) {
   return EngineRace::Open(name, eptr);
 }
-
-Engine::~Engine() {}
-
-// read (key_size, key, location)
-// keysize key(不含\0), value所在的Location
-// RetCode EngineRace::read_index_file(int bucket_id, int& fd)
-//{ // fd并不会改变, 我觉得这里存const fd也行
-//  ssize_t rd;
-//  int sz;
-//  char buf[1024];
-//  while ((rd = read(fd, (char*)&sz, 4)) > 0) { // key size is a 4-byte int
-//    if (rd != 4) {
-//      fprintf(stderr, "wrong index file, cannot read key size\n");
-//      return kIOError;
-//    }
-//    if (sz == 0) // no records any more
-//    {
-//      rd = 0;
-//      break;
-//    }
-//    // read key
-//    rd = read(fd, buf, sz);
-//    if (rd != sz) {
-//      fprintf(stderr, "wrong index file, cannot read key\n");
-//      return kIOError;
-//    }
-//    buf[sz] = 0;
-//    std::string key(buf);
-
-//    //read location
-//    Location pos;
-//    rd = read(fd, (char*)&(pos), sizeof(Location));
-//    if (rd != sizeof(Location)) {
-//      fprintf(stderr, "wrong index file, cannot read location\n");
-//      return kIOError;
-//    }
-//    this->index[bucket_id][key] = pos;
-//  }
-//  if (rd == 0) // end of file
-//    return kSucc;
-//  if (rd < 0)
-//    return kIOError;
-//  return kSucc;
-//}
 
 // 1. Open engine
 // check if index.tmp exists
@@ -80,18 +35,19 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
   i32 data_fd = -1, key_fd = -1;
 
   struct stat st; // 也是循环中临时变量的性质
+  st.st_size = 0; // 没什么用, 只是为了编译警告
   // init every bucket
   for (size_t i = 0; i < BUCKET_NUM; i++) {
     u32 key_count = 0;
     std::string suffix = std::to_string(i);
     // int fd_index;
-    Buckect &f = engine->buckets[i];
-    key_fd = open(name + "/index_" + suffix, O_RDWR, 0666);
+    Bucket &f = engine->buckets[i];
+    key_fd = open( (name + "/index_" + suffix).c_str(), O_RDWR, 0666);
     // {{{2 目录已存在
     if (key_fd > 0) {
       // 维护各个字段
       // 再打开数据文件
-      data_fd = open(name + "/data_" + suffix, O_RDWR, 0666);
+      data_fd = open((name + "/data_" + suffix).c_str(), O_RDWR, 0666);
       if (data_fd < 0) {
         log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
         perror("open data file fail");
@@ -103,7 +59,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       // mmap
       assert(fstat(key_fd, &st)); // 只是为了获得文件大小
       assert(st.st_size == key_file_size);
-      data = (u8 *)mmap(nullptr, st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,
+      data = (u8 *)mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
       if (data == MAP_FAILED) {
         perror("mmap fail");
@@ -118,7 +74,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
           log_trace("index file finish, key_count:%u", key_count);
           break;
         } else {
-          f.map.insert_or_assign(std::string(cur + 4, key_sz),
+          f.map.insert_or_assign(std::string((char*)cur + 4, key_sz),
                                  (Location *)(cur + 4 + key_sz));
           cur = cur + 4 + key_sz + location_sz;
           key_count++; // DEBUG
@@ -128,12 +84,12 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
     } else {                                         // {{{2 目录不存在
       assert(!FileExists(name + "/data_" + suffix)); // 数据文件也应该不存在
       // 新目录, 创建data和index文件
-      key_fd = open(name + "/index_" + suffix, O_RDWR | O_CREAT, 0666);
+      key_fd = open((name + "/index_" + suffix).c_str(), O_RDWR | O_CREAT, 0666);
       if (key_fd < 0) {
         perror("cannot create file");
         return kIOError;
       }
-      data_fd = open(name + "/data_" + suffix, O_RDWR | O_CREAT, 0666);
+      data_fd = open((name + "/data_" + suffix).c_str(), O_RDWR | O_CREAT, 0666);
       if (data_fd < 0) {
         perror("cannot open file");
         return kIOError;
@@ -202,7 +158,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
 
   u8 buf[80]; // TODO 这个80是随便定的, 再看看
   u8 *buf_pos = buf;
-  (u32 *)buf_pos = key.size();
+  *(u32 *)buf_pos = key.size();
   buf_pos += 4;
 
   memcpy(buf_pos, key.data(), key.size());
@@ -214,11 +170,11 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   memcpy(f.key_mmap_cur, buf, buf_pos - buf); // 这是通过mmap来写的
 
   // 写入map
-  f.map.insert_or_assign(key.ToString(), f.key_mmap_cur + 4 + key.size());
+  f.map.insert_or_assign(key.ToString(), (Location*)(f.key_mmap_cur + 4 + key.size()));
 
   // 维护各个字段
   f.data_offset += value.size();
-  f.key_mmap_cur = f.kep_mmap_cur + 4 + key.size();
+  f.key_mmap_cur = f.key_mmap_cur + 4 + key.size();
 
   pthread_rwlock_unlock(&f.lock);
   return kSucc;
@@ -240,13 +196,13 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
     *value = std::string(buf, loc->len);
   }
   pthread_rwlock_unlock(&f.lock);
-  return kSucc;
+  return ret;
 }
 // seek and read
-size_t EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
+int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
   lseek(fd, loc->offset, SEEK_SET);
   char *pos = buf;
-  u32 value_len = l->len;
+  u32 value_len = loc->len;
 
   while (value_len > 0) {
     ssize_t r = read(fd, buf, value_len);

@@ -1,7 +1,7 @@
 CLEAN_FILES = # deliberately empty, so we can append below.
 CXX=g++
 PLATFORM_LDFLAGS= -lpthread -lrt
-PLATFORM_CXXFLAGS= -std=c++11
+PLATFORM_CXXFLAGS= -std=c++17
 PROFILING_FLAGS=-pg
 OPT=
 LDFLAGS += -Wl,-rpath=$(RPATH)
@@ -42,7 +42,7 @@ SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
-INCLUDE_PATH = -I./ -I $$MHOME/Playground/lib/ubuntu/header
+INCLUDE_PATH = -I./ -I .. -I $$MHOME/Playground/lib/ubuntu/header
 
 # ---------------End Dependences----------------
 
