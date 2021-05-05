@@ -5,6 +5,7 @@
 
 #include "include/engine.h"
 #include "test_util.h"
+#include <mylib.h>
 
 using namespace polar_race;
 
@@ -27,6 +28,7 @@ int main() {
         std::string("/tmp/ramdisk/data/test-") + std::to_string(asm_rdtsc());
 #else
     // std::string engine_path = "/dev/dax0.0";
+     system("rm -rf data/*");
     std::string engine_path = std::string("data/test-") + std::to_string(asm_rdtsc());
 #endif
     RetCode ret = Engine::Open(engine_path, &engine);
@@ -85,7 +87,7 @@ int main() {
 
     for (int i = 0; i < KV_CNT; ++i) {
         ret = engine->Read(ks[i], &value);
-        assert(ret == kSucc);
+        Assert(ret == kSucc,"i=%d",i);
         assert(value == vs_1[i]);
     }
 // {{{1 对偶数, 再写vs_2
@@ -98,7 +100,7 @@ int main() {
 // {{{1再次读
     for (int i = 0; i < KV_CNT; ++i) {
         ret = engine->Read(ks[i], &value);
-        assert(ret == kSucc);
+        Assert(ret == kSucc,"i=%d",i);
 
         if (i % 2 == 0) {
             assert(value == vs_2[i]);

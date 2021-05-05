@@ -197,11 +197,15 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   pthread_rwlock_rdlock(&f.lock);
   auto it = f.map.find(key);
   if (it != f.map.end()) {
-    ret = kSucc;
     char buf[4097]; // TODO value的大小到底是多少?可能需要改
     Location *loc = it->second;
-    assert(read_data_file(f.data_fd, loc, buf) == 0);
+    // assert();
+    if(read_data_file(f.data_fd, loc, buf) == 0) {
     *value = std::string(buf, loc->len);
+    ret = kSucc;
+    } else {
+      ret = kIOError;
+    }
   }
   pthread_rwlock_unlock(&f.lock);
   return ret;
