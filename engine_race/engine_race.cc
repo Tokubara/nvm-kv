@@ -23,12 +23,8 @@ RetCode Engine::Open(const std::string& name, Engine** eptr) {
 
 Engine::~Engine(){}
 
-// 1. Open engine
-// check if index.tmp exists
-// if yes, maybe a crash just happened, combine the index
-// if no, load index
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
-  // log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
+  log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
   *eptr = NULL;
   EngineRace *engine = new EngineRace();
   engine->dir_name = name;
@@ -58,12 +54,12 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
     key_fd = open(index_file_name.c_str(), O_RDWR, 0666);
     // {{{2 目录已存在
     if (key_fd > 0) {
-  // log_trace("engine exists");
+  log_trace("engine exists");
       // 维护各个字段
       // 再打开数据文件
       data_fd = open(data_file_name.c_str(), O_RDWR, 0666);
       if (data_fd < 0) {
-        // log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
+        log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
         perror("open data file fail");
         return kIOError;
       }
@@ -237,39 +233,6 @@ int EngineRace::get_string_from_location(i32 fd, Location* loc, std::string *val
   return 0;
 }
 
-
-// seek and read
-// int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
-//   lseek(fd, loc->offset, SEEK_SET);
-//   char *pos = buf;
-//   u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
-
-//   while (value_len > 0) {
-//     ssize_t r = read(fd, pos, value_len);
-//     if (r < 0) {
-//       if (errno == EINTR) {
-//         continue; // Retry
-//       }
-//       perror("read_data_file fail");
-//       close(fd);
-//       return -1;
-//     }
-//     pos += r;
-//     value_len -= r;
-//   }
-//   return 0;
-// }
-/*
- * NOTICE: Implement 'Range' in quarter-final,
- *         you can skip it in preliminary.
- */
-// 5. Applies the given Vistor::Visit function to the result
-// of every key-value pair in the key range [first, last),
-// in order
-// lower=="" is treated as a key before all keys in the database.
-// upper=="" is treated as a key after all keys in the database.
-// Therefore the following call will traverse the entire database:
-//   Range("", "", visitor)
 RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
                           Visitor &visitor) {
 

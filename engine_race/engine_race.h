@@ -9,6 +9,22 @@
 #include <map>
 #define BUCKET_NUM 8
 
+#ifdef DEBUG
+#define Assert(cond, ...) \
+  do { \
+    if (!(cond)) { \
+      fflush(stdout); \
+      fprintf(stderr, "\33[1;31m"); \
+      fprintf(stderr, __VA_ARGS__); \
+      fprintf(stderr, "\33[0m\n"); \
+      assert(cond); \
+    } \
+  } while (0)
+#else
+#define Assert(cond, ...) (void(0))
+#endif
+
+
 namespace polar_race {
 
 using i8 = char;
@@ -44,7 +60,6 @@ const u64 location_sz = sizeof(Location);
 class EngineRace : public Engine {
   public:
   static const size_t key_file_size = 128 * 1024 * 1024; // 128MB
-  Bucket buckets[BUCKET_NUM];
   std::string dir_name;
 
   static RetCode Open(const std::string& name, Engine** eptr);
@@ -65,11 +80,11 @@ class EngineRace : public Engine {
       const PolarString& upper,
       Visitor& visitor) override;
 
-  // private: // DEBUG
+  private:
 
   // helper function to read data file
   int get_string_from_location(i32 fd, Location* loc, std::string *value);
-  // 仅仅是为了hash
+  Bucket buckets[BUCKET_NUM];
 };
 
 } // namespace polar_race

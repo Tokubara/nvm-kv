@@ -34,7 +34,8 @@ endif
 else
 $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
 OPT += $(PROFILING_FLAGS)
-DEBUG_SUFFIX = "_debug"
+# DEBUG_SUFFIX = "_debug"
+DEBUG_SUFFIX =
 endif
 
 # ----------------------------------------------

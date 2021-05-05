@@ -38,7 +38,8 @@ endif
 else
 # $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
 OPT += $(PROFILING_FLAGS) -O0
-DEBUG_SUFFIX = "_debug"
+# DEBUG_SUFFIX = _debug
+DEBUG_SUFFIX =
 # 上面这个从来没用到过
 endif
 
