@@ -268,8 +268,8 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
                           Visitor &visitor) {
 
   u8 lo_bid=0, hi_bid=BUCKET_NUM-1;
-  bool lo_nempty = (lower.size()==0);
-  bool hi_nempty = (upper.size()==0);
+  bool lo_nempty = (lower.size()!=0);
+  bool hi_nempty = (upper.size()!=0);
   if(lo_nempty) {
     lo_bid = (u8)lower[0]%BUCKET_NUM;
   }

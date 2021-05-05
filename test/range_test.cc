@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string>
+#include <mylib.h>
 
 #include "include/engine.h"
 #include "test_util.h"
