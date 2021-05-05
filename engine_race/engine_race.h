@@ -68,7 +68,7 @@ class EngineRace : public Engine {
   // private: // DEBUG
 
   // helper function to read data file
-  int read_data_file(i32 fd, Location *loc, char *buf);
+  int get_string_from_location(i32 fd, Location* loc, std::string *value);
 };
 
 } // namespace polar_race

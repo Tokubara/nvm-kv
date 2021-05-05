@@ -43,13 +43,13 @@ int main() {
         vs[i] = v;
     }
 
-    std::sort(ks, ks + KV_CNT);
+    std::sort(ks, ks + KV_CNT); // 也就是说, ks在此时就已经是有序的
 
     for (int i = 0; i < KV_CNT; ++i) {
-        ret = engine->Write(ks[i], vs[i]);
+        ret = engine->Write(ks[i], vs[i]); // 是按顺序写的key, 其实这个vs一点也不重要
         assert(ret == kSucc);
     }
-    
+    // 生成两个随机数, hi, lo, 测试数目相同 
     for (int i = 0; i < 1000; ++i) {
         int lo = rand() % KV_CNT, hi = rand() % KV_CNT;
         if (lo > hi) {
@@ -61,7 +61,7 @@ int main() {
         assert(ret == kSucc);;
         assert(cnt == hi - lo);
     }
-
+  // 左边没有, 右边有
     for (int i = 0; i < 1000; ++i) {
         int hi = rand() % KV_CNT;
         int cnt = 0;
@@ -70,7 +70,7 @@ int main() {
         assert(ret == kSucc);
         assert(cnt == hi);
     }
-
+   // 左边有, 右边没有
     for (int i = 0; i < 1000; ++i) {
         int lo = rand() % KV_CNT;
         int cnt = 0;
@@ -79,7 +79,7 @@ int main() {
         assert(ret == kSucc);
         assert(cnt == KV_CNT - lo);
     }
-
+  // 两边都没有
     {
         int cnt = 0;
         CountVisitor v(cnt);

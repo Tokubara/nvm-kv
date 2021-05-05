@@ -198,11 +198,8 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   pthread_rwlock_rdlock(&f.lock);
   auto it = f.map.find(key);
   if (it != f.map.end()) {
-    char buf[4097]; // TODO value的大小到底是多少?可能需要改
     Location *loc = it->second;
-    // assert();
-    if(read_data_file(f.data_fd, loc, buf) == 0) {
-    *value = std::string(buf, loc->len);
+    if(get_string_from_location(f.data_fd, loc, value) == 0) {
     ret = kSucc;
     } else {
       ret = kIOError;
@@ -211,8 +208,9 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   pthread_rwlock_unlock(&f.lock);
   return ret;
 }
-// seek and read
-int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
+
+int EngineRace::get_string_from_location(i32 fd, Location* loc, std::string *value) {
+  char buf[4097];
   lseek(fd, loc->offset, SEEK_SET);
   char *pos = buf;
   u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
@@ -230,8 +228,31 @@ int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
     pos += r;
     value_len -= r;
   }
+  *value = std::string(buf, loc->len);
   return 0;
 }
+
+// seek and read
+// int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
+//   lseek(fd, loc->offset, SEEK_SET);
+//   char *pos = buf;
+//   u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
+
+//   while (value_len > 0) {
+//     ssize_t r = read(fd, pos, value_len);
+//     if (r < 0) {
+//       if (errno == EINTR) {
+//         continue; // Retry
+//       }
+//       perror("read_data_file fail");
+//       close(fd);
+//       return -1;
+//     }
+//     pos += r;
+//     value_len -= r;
+//   }
+//   return 0;
+// }
 /*
  * NOTICE: Implement 'Range' in quarter-final,
  *         you can skip it in preliminary.
@@ -245,6 +266,33 @@ int EngineRace::read_data_file(i32 fd, Location *loc, char *buf) {
 //   Range("", "", visitor)
 RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
                           Visitor &visitor) {
+
+  u8 lo_bid=0, hi_bid=BUCKET_NUM-1;
+  bool lo_nempty = (lower.size()==0);
+  bool hi_nempty = (upper.size()==0);
+  if(lo_nempty) {
+    lo_bid = (u8)lower[0]%BUCKET_NUM;
+  }
+  if(hi_nempty) {
+    hi_bid = (u8)upper[0]%BUCKET_NUM;
+  }
+  for(u8 i = lo_bid; i <= hi_bid; i++) {
+    Bucket &f = buckets[i];
+    // 上界不为end, 只有一种情况: i是最后一个, 而且len还不为0
+    auto lower_bound = f.map.cbegin();
+    auto upper_bound = f.map.cend();
+    if(i==hi_bid && hi_nempty) {
+      upper_bound = f.map.upper_bound(upper.ToString());
+    }
+    if(i==lo_bid && lo_nempty) {
+      lower_bound = f.map.lower_bound(lower.ToString());
+    }
+    std::string value;
+    for(auto it = lower_bound; it != upper_bound; it++) {
+      get_string_from_location(f.data_fd, it->second, &value);
+      visitor.Visit(it->first, value);
+    }
+  }
   return kSucc;
 }
 
