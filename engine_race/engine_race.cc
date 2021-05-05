@@ -111,6 +111,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       // 创建index的映射数组, 初始化与映射相关的各个字段
       data = (u8 *)mmap(NULL, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
+      memset(data, 0, key_file_size);
       if (data == MAP_FAILED) {
         perror("mmap fail");
         return kIOError;

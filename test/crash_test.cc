@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <mylib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -76,7 +77,7 @@ int main() {
         int i = 0;
         for (; i <= KV_CNT / 3; ++i) {
             ret = engine->Read(ks[i], &value);
-            assert(ret == kSucc);
+            Assert(ret == kSucc, "ret=%d,ks[%d]=%s",ret,i,ks[i].c_str());
             assert(value == vs[i]);
         }
         for (; i < KV_CNT; ++i) {
