@@ -73,6 +73,7 @@ static double mehcached_pow_approx(double a, double b) {
     return r * u.d;
 }
 
+//? 是怎么初始化的?
 static void mehcached_zipf_init(struct zipf_gen_state *state, uint64_t n,
                                 double theta, uint64_t rand_seed) {
     assert(n > 0);
@@ -83,9 +84,10 @@ static void mehcached_zipf_init(struct zipf_gen_state *state, uint64_t n,
         fprintf(stderr, "theta in [1., 40.) is not supported\n");
         assert(false);
     }
+    //? 怀疑这是不是概率有关, 下面是theta的合法区间
     assert(theta == -1. || (theta >= 0. && theta < 1.) || theta >= 40.);
     assert(rand_seed < (1UL << 48));
-    memset(state, 0, sizeof(struct zipf_gen_state));
+    memset(state, 0, sizeof(struct zipf_gen_state)); // 清空
     state->n = n;
     state->theta = theta;
     if (theta == -1.)

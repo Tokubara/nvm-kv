@@ -4,14 +4,19 @@
 #include <fcntl.h>
 #include <iostream>
 #include <map>
+#ifndef NDEBUG
 #include <mylib.h>
+#else
+#define log_trace(...) (void)0
+#define log_error(...) (void)0
+#define Assert(...) (void)0
+#endif
 #include <signal.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <ctype.h>
 #include <string.h>
-#include <cassert>
 namespace polar_race {
 
 #define which_bucket(ch) ((ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)))/num_per_bucket)
@@ -63,12 +68,12 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
         perror("open data file fail");
         return kIOError;
       }
-      assert(fstat(data_fd, &st) == 0);
+      Assert(fstat(data_fd, &st) == 0, "%d", data_fd);
       data_offset = st.st_size;
 
       // mmap
-      assert(fstat(key_fd, &st)==0); // 只是为了获得文件大小
-      assert(st.st_size == key_file_size);
+      Assert(fstat(key_fd, &st)==0, "%d", key_fd); // 只是为了获得文件大小
+      Assert(st.st_size == key_file_size, "st.st_size: %lu,key_file_size: %lu, key_fd=%d", st.st_size, key_file_size, key_fd);
       data = (u8 *)mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
       if (data == MAP_FAILED) {
@@ -92,7 +97,6 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       }
 
     } else {                                         // {{{2 目录不存在
-      assert(!FileExists(name + "/data_" + suffix)); // 数据文件也应该不存在
       // 新目录, 创建data和index文件
       key_fd = open((name + "/index_" + suffix).c_str(), O_RDWR | O_CREAT, 0666);
       if (key_fd < 0) {
@@ -156,11 +160,10 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   pthread_rwlock_wrlock(&f.lock);
   // log_trace("get lock");
   // {{{2 写入data文件, 而且必须先写data
-  struct stat st;
-  assert(fstat(f.data_fd, &st) == 0);  
-  u32 before_size=st.st_size;
-  assert(FileAppend(f.data_fd, value.data(), value.size()) ==
-         0); // write value data
+  // struct stat st;
+  // u32 before_size=st.st_size;
+  Assert(FileAppend(f.data_fd, value.data(), value.size()) ==
+         0, "data_fd=%d, value.size=%lu", f.data_fd, value.size()); // write value data
   // log_trace("write data done");
   // int ret = FileAppend(f.data_fd, value.data(), value.size()); // write value
   // data if(ret<0) {
@@ -169,8 +172,6 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // }
 
   // 写入key_buf
-  // DEBUG
-      assert(fstat(f.data_fd, &st) == 0);  
   Location loc;
   loc.len = value.size();
   loc.offset = f.data_offset;
@@ -194,7 +195,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // 维护各个字段
   f.data_offset += value.size();
   f.key_mmap_cur = f.key_mmap_cur + 4 + key.size()+location_sz;
-  log_trace("finish Write, fd=%d, before data size=%u, f.data_offset=%u, data file size=%u, loc:offset=%u,len=%u, key=%s", f.data_fd, before_size, f.data_offset, (u32)st.st_size, loc.offset, loc.len, key.ToString().c_str());
+  // log_debug("finish Write, fd=%d, before data size=%u, f.data_offset=%u, data file size=%u, loc:offset=%u,len=%u, key=%s", f.data_fd, before_size, f.data_offset, (u32)st.st_size, loc.offset, loc.len, key.ToString().c_str());
 
   pthread_rwlock_unlock(&f.lock);
   return kSucc;
