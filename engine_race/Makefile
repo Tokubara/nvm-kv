@@ -113,7 +113,7 @@ INCLUDE_PATH += -I$(EXEC_DIR)
 
 .PHONY: clean dbg all
 
-%.o: %.cc
+%.o: %.cc $(wildcard *.h)
 	  $(AM_V_CC)$(CXX) $(CXXFLAGS) -c $< -o $@
 
 all: $(LIBRARY)

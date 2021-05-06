@@ -9,22 +9,6 @@
 #include <map>
 #define BUCKET_NUM 8
 
-#ifdef DEBUG
-#define Assert(cond, ...) \
-  do { \
-    if (!(cond)) { \
-      fflush(stdout); \
-      fprintf(stderr, "\33[1;31m"); \
-      fprintf(stderr, __VA_ARGS__); \
-      fprintf(stderr, "\33[0m\n"); \
-      assert(cond); \
-    } \
-  } while (0)
-#else
-#define Assert(cond, ...) (void(0))
-#endif
-
-
 namespace polar_race {
 
 using i8 = char;

@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <mylib.h>
 
 // helper functions copied from engine_example
 inline bool FileExists(const std::string &path) {
@@ -22,6 +23,7 @@ inline int FileAppend(int fd, const std::string &value) {
         return -1;
     }
     size_t value_len = value.size();
+    log_trace("FileAppend:fd=%d,len=%lu",fd,value_len);
     const char *pos = value.data();
     while (value_len > 0) {
         ssize_t r = write(fd, pos, value_len);
@@ -41,6 +43,7 @@ inline int FileAppend(int fd, const char *data, size_t length) {
     if (fd < 0) {
         return -1;
     }
+    log_trace("in FileAppend: fd=%d, length=%lu", fd, length);
     while (length > 0) {
         ssize_t r = write(fd, data, length);
         if (r < 0) {

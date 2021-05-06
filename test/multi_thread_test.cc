@@ -26,7 +26,7 @@ void test_thread(int id) {
     for (int i = 0; i < KV_CNT; ++i) {
         ret = engine->Write(ks[id][i], vs[id][i]);
         assert(ret == kSucc);
-
+        // log_trace("thread_id=%d,i=%d",id,i);
         ret = engine->Read(ks[id][i], &value);
         assert(ret == kSucc);
         Assert(value == vs[id][i], "id=%d, i=%d",id, i);
@@ -52,13 +52,14 @@ int main() {
     printf_(
         "======================= multi thread test "
         "============================");
+    log_set_level(LOG_DEBUG);
     std::string engine_path =
         std::string("./data/test-") + std::to_string(asm_rdtsc());
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
     printf("open engine_path: %s\n", engine_path.c_str());
 
-    // {{{1 生成数据, ks,vs, 第一维是进程数, 有4个进程, 第二维是kv对数, 是10000
+    // {{{1 生成数据, ks,vs, 第一维是进程数, 有4个线程, 第二维是kv对数, 是10000
     for (int t = 0; t < THREAD_NUM; ++t) {
         for (int i = 0; i < KV_CNT; ++i) {
             gen_random(k, 6);

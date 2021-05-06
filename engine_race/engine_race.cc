@@ -54,7 +54,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
     key_fd = open(index_file_name.c_str(), O_RDWR, 0666);
     // {{{2 目录已存在
     if (key_fd > 0) {
-  log_trace("engine exists");
+  // log_trace("engine exists");
       // 维护各个字段
       // 再打开数据文件
       data_fd = open(data_file_name.c_str(), O_RDWR, 0666);
@@ -99,7 +99,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
         perror("cannot create file");
         return kIOError;
       }
-      data_fd = open((name + "/data_" + suffix).c_str(), O_RDWR | O_CREAT, 0666);
+      data_fd = open((name + "/data_" + suffix).c_str(), O_RDWR | O_CREAT | O_APPEND, 0666);
       if (data_fd < 0) {
         perror("cannot open file");
         return kIOError;
@@ -149,16 +149,19 @@ EngineRace::~EngineRace() {
 // 需要维护的是2部分: index数组, 还有写文件, 不需要直接write, 是通过mmap的方式,
 // memcpy就行了
 RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
-  log_trace("enter Write");
+  // log_trace("enter Write");
   // 放入到合适的桶中
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
   pthread_rwlock_wrlock(&f.lock);
-  log_trace("get lock");
+  // log_trace("get lock");
   // {{{2 写入data文件, 而且必须先写data
+  struct stat st;
+  assert(fstat(f.data_fd, &st) == 0);  
+  u32 before_size=st.st_size;
   assert(FileAppend(f.data_fd, value.data(), value.size()) ==
          0); // write value data
-  log_trace("write data done");
+  // log_trace("write data done");
   // int ret = FileAppend(f.data_fd, value.data(), value.size()); // write value
   // data if(ret<0) {
   //   log_fatal("append data file fail, path=%s, id=%d",
@@ -166,6 +169,8 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // }
 
   // 写入key_buf
+  // DEBUG
+      assert(fstat(f.data_fd, &st) == 0);  
   Location loc;
   loc.len = value.size();
   loc.offset = f.data_offset;
@@ -189,19 +194,19 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // 维护各个字段
   f.data_offset += value.size();
   f.key_mmap_cur = f.key_mmap_cur + 4 + key.size()+location_sz;
+  log_trace("finish Write, fd=%d, before data size=%u, f.data_offset=%u, data file size=%u, loc:offset=%u,len=%u, key=%s", f.data_fd, before_size, f.data_offset, (u32)st.st_size, loc.offset, loc.len, key.ToString().c_str());
 
   pthread_rwlock_unlock(&f.lock);
-  log_trace("finish Write");
   return kSucc;
 }
 
 // {{{1 Read
 RetCode EngineRace::Read(const PolarString &key, std::string *value) {
-  log_trace("enter Read");
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
+  log_trace("enter Read, key=%s, bucket_id=%u", key.ToString().c_str(),(u32)bucket_id);
   RetCode ret = kNotFound;
-  pthread_rwlock_rdlock(&f.lock);
+  pthread_rwlock_wrlock(&f.lock);
   auto it = f.map.find(key);
   if (it != f.map.end()) {
     Location *loc = it->second;
@@ -212,26 +217,29 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
     }
   }
   pthread_rwlock_unlock(&f.lock);
-  log_trace("finish Read");
+  // log_trace("finish Read");
   return ret;
 }
 
-char buf[4097];
 int EngineRace::get_string_from_location(i32 fd, Location* loc, std::string *value) {
   lseek(fd, loc->offset, SEEK_SET);
+char buf[4097];
   char *pos = buf;
   u32 value_len = loc->len; // 在错误的这个地方, loc->len是7926335344292808279, 而value_len是120735319
 
   while (value_len > 0) {
-    ssize_t r = read(fd, pos, value_len);
+    ssize_t r = read(fd, pos, value_len); // 这是在搞什么鬼
+    Assert(r!=0, "fd=%d,loc_offset=%lu, loc_len=%lu", fd, loc->offset, loc->len);
     if (r < 0) {
       if (errno == EINTR) {
+        log_trace("retry");
         continue; // Retry
       }
       perror("read_data_file fail");
       close(fd);
       return -1;
     }
+    // log_trace("value_len=%u, r=%d",value_len, r);
     pos += r;
     value_len -= r;
   }

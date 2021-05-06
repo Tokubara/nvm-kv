@@ -25,6 +25,7 @@ std::string ks[KV_CNT];
 std::string vs[KV_CNT];
 int main() {
 
+    log_set_level(LOG_DEBUG);
     Engine *engine = NULL;
     printf_(
         "======================= range test "
