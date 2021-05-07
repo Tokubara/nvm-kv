@@ -36,3 +36,40 @@ cd test
 ./single_thread_test # 没有卡住, 顺利执行
 cd ..
 结论: 的确是NDEBUG的问题
+
+推理: 在kv下, NDEBUG绝对没有任何作用, 除了注释, 它只出现在Makefile中
+但有一个外来源可能导致错误, mylib.h
+在这个目录下, 搜索NDEBUG, 有2个地方用到了:
+#define Assert(cond, ...) (void(0))
+
+以及
+#ifdef NDEBUG
+
+#define debug(...) ((void)0)
+#define idebug(...) ((void)0)
+#define debug_raw(...) ((void)0)
+#define idebug_raw(...) ((void)0)
+
+但是不可能是debug函数, 因为我都没用过.
+但是Assert看上去无辜极了, 会是Assert?
+不敢相信
+
+目的: 仍然保持添加NDEBUG, 对single_thread_test测例添加更多的打印信息, 粗定位, 顺便修改了build.sh, 只生成single_thread_test
+mac:
+out
+ubuntu:
+make clean
+make
+cd test
+./single_thread_test # 没有卡住, 顺利执行
+cd ..
+
+结果
+18:24:56 TRACE /home/parallels/kv/engine_race/engine_race.cc:25: Open /tmp/ramdisk/data/te
+st-331516453017026, bucket number: 8
+open engine_path: /tmp/ramdisk/data/test-331516453017026
+18:24:57 TRACE single_thread_test.cc:48: Write once finish
+
+也就是说, 在执行Read的时候卡住了(key存在的情况下, 之前有一次key并不存在)
+
+

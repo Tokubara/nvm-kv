@@ -26,7 +26,7 @@ OPT += -O2 -fno-omit-frame-pointer
 INCLUDE_PATH+= -I $$MHOME/Playground/lib/ubuntu/header
 # if we're compiling for release, compile without debug code (-DNDEBUG) and
 # don't treat warnings as errors
-# OPT += -DNDEBUG
+OPT += -DNDEBUG
 DISABLE_WARNING_AS_ERROR=1
 # Skip for archs that don't support -momit-leaf-frame-pointer
 ifeq (,$(shell $(CXX) -fsyntax-only -momit-leaf-frame-pointer -xc /dev/null 2>&1))
