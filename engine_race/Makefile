@@ -34,6 +34,7 @@ endif
 else
 $(warning Warning: Compiling in debug mode. Don't use the resulting binary in production)
 OPT += $(PROFILING_FLAGS)
+INCLUDE_PATH+= -I $$MHOME/Playground/lib/ubuntu/header
 # DEBUG_SUFFIX = "_debug"
 DEBUG_SUFFIX =
 endif
@@ -43,8 +44,9 @@ SRC_PATH = $(CURDIR)
 
 # ----------------Dependences-------------------
 
-INCLUDE_PATH = -I./ -I .. 
-dbg: INCLUDE_PATH+= -I $$MHOME/Playground/lib/ubuntu/header
+INCLUDE_PATH += -I./ -I .. 
+# dbg: INCLUDE_PATH+= -I $$MHOME/Playground/lib/ubuntu/header
+# 这种做法不行, 因为父目录并不是make dbg这样决定子目录是否用debug模式, 而是通过DEBUG_LEVEL来传输的
 
 # ---------------End Dependences----------------
 
