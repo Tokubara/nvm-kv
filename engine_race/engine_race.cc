@@ -4,13 +4,6 @@
 #include <fcntl.h>
 #include <iostream>
 #include <map>
-#ifndef NDEBUG
-#include <mylib.h>
-#else
-#define log_trace(...) (void)0
-#define log_error(...) (void)0
-#define Assert(...) (void)0
-#endif
 #include <signal.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
