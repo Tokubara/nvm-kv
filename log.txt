@@ -1,0 +1,9 @@
+out
+ubuntu/kv下(之后也是如此)
+make clean
+make
+cd test
+./single_thread_test
+cd ..
+
+结果: 可以过single_thread_test.
