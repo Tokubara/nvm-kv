@@ -45,12 +45,12 @@ int main() {
 
     ret = engine->Write(k, v);
     assert(ret == kSucc);
-    log_trace("Write once finish");
+    // log_trace("Write once finish");
 
     ret = engine->Read(k, &value);
     assert(ret == kSucc);
     assert(value == v);
-    log_trace("Read once finish");
+    // log_trace("Read once finish");
 
     gen_random(v, 111);
     ret = engine->Write(k, v);
@@ -66,13 +66,13 @@ int main() {
 
     ret = engine->Write(k, v);
     assert(ret == kSucc);
-    log_trace("Write a lot finish");
+    // log_trace("Write a lot finish");
 
 
     ret = engine->Read(k, &value);
     assert(ret == kSucc);
     assert(value == v);
-    log_trace("Read a lot finish");
+    // log_trace("Read a lot finish");
 
     ///////////////////////////////////
     // {{{1 生成ks,vs_1,vs_2, 长度都是KV_CNT

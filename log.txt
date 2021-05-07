@@ -77,5 +77,18 @@ open engine_path: /tmp/ramdisk/data/test-331516453017026
 再比如Assert(FileAppend...)
 因此一个非常重要的原则: 如果你打算置空某个操作(define (void)0), 你得保证这个操作本来就对代码毫无影响. Assert破坏了这个原则. 对于打印调试信息, 不要有副作用. 分离逻辑和打印内容.
 
+修改了Assert, 保证Assert不干实际的事. 不过写法上不好看, 比如, 一个函数内, 有多处Assert, 并且返回类型不一样, rust可以覆盖变量, 但是这里只能起新的变量.
+mac:
+out
+ubuntu:
+make clean
+make
+cd test
+./single_thread_test # 没有卡住, 顺利执行
+cd ..
+鉴于没有问题, 因此去除了single中的log信息
+
+
+
 
 

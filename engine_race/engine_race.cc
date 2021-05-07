@@ -61,12 +61,12 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
         perror("open data file fail");
         return kIOError;
       }
-      Assert(fstat(data_fd, &st) == 0, "%d", data_fd);
+      fstat(data_fd, &st);
       data_offset = st.st_size;
 
       // mmap
-      Assert(fstat(key_fd, &st)==0, "%d", key_fd); // 只是为了获得文件大小
-      Assert(st.st_size == key_file_size, "st.st_size: %lu,key_file_size: %lu, key_fd=%d", st.st_size, key_file_size, key_fd);
+      // fstat(key_fd, &st);
+      // Assert(st.st_size == key_file_size, "st.st_size: %lu,key_file_size: %lu, key_fd=%d", st.st_size, key_file_size, key_fd);
       data = (u8 *)mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
       if (data == MAP_FAILED) {
@@ -159,8 +159,8 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // {{{2 写入data文件, 而且必须先写data
   // struct stat st;
   // u32 before_size=st.st_size;
-  Assert(FileAppend(f.data_fd, value.data(), value.size()) ==
-         0, "data_fd=%d, value.size=%lu", f.data_fd, value.size()); // write value data
+  int a_ret = FileAppend(f.data_fd, value.data(), value.size());
+  Assert(a_ret==0, "data_fd=%d, value.size=%lu", f.data_fd, value.size()); // write value data
   // log_trace("write data done");
   // int ret = FileAppend(f.data_fd, value.data(), value.size()); // write value
   // data if(ret<0) {
