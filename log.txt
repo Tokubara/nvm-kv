@@ -98,6 +98,16 @@ cd test
 ./single_thread_test # 没有卡住, 顺利执行
 cd ..
 
-
+现在看nvm是不是可以了
+mac:
+alias out_nvm="rsync_all -m u -f ./engine_race -t nvm-kv"
+out_nvm
+ubuntu(~/nvm-kv):
+make
+cd test
+bash build.sh
+./single_thread_test # 通过
+./multi_thread_test # 通过
+./crash_test # 通过
 
 
