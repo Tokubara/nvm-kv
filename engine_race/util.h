@@ -7,14 +7,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifndef NDEBUG
+// #ifndef NDEBUG
 #include <mylib.h>
-#else
-#define log_trace(...) (void)0
-#define log_error(...) (void)0
-#define log_debug(...) (void)0
-#define Assert(...) (void)0
-#endif
+// #else
+// #define log_trace(...) (void)0
+// #define log_error(...) (void)0
+// #define log_debug(...) (void)0
+// #define Assert(...) (void)0
+// #endif
 
 // helper functions copied from engine_example
 inline bool FileExists(const std::string &path) {

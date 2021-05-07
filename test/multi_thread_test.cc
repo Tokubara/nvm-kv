@@ -53,8 +53,15 @@ int main() {
         "======================= multi thread test "
         "============================");
     log_set_level(LOG_DEBUG);
+#ifdef MOCK_NVM
+    system("rm -rf /tmp/ramdisk/data/*"); // 否则1g存储, 根本不够用, posix_fallocate会报错
     std::string engine_path =
-        std::string("./data/test-") + std::to_string(asm_rdtsc());
+        std::string("/tmp/ramdisk/data/test-") + std::to_string(asm_rdtsc());
+#else
+    // std::string engine_path = "/dev/dax0.0";
+     system("rm -rf data/*");
+    std::string engine_path = std::string("data/test-") + std::to_string(asm_rdtsc());
+#endif
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
     printf("open engine_path: %s\n", engine_path.c_str());
