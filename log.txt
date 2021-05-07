@@ -72,4 +72,10 @@ open engine_path: /tmp/ramdisk/data/test-331516453017026
 
 也就是说, 在执行Read的时候卡住了(key存在的情况下, 之前有一次key并不存在)
 
+目的: 对Read添加更多的打印信息
+不过在我编辑的过程中(其实就是发现Read调用了get_string_from_location, 而get_string_from_location调用了Assert). 我意识到了问题. 那就是, Assert是有副作用的, 比如Assert(fstat(key_fd, &st)==0, "%d", key_fd);
+再比如Assert(FileAppend...)
+因此一个非常重要的原则: 如果你打算置空某个操作(define (void)0), 你得保证这个操作本来就对代码毫无影响. Assert破坏了这个原则. 对于打印调试信息, 不要有副作用. 分离逻辑和打印内容.
+
+
 
