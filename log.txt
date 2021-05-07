@@ -88,6 +88,15 @@ cd test
 cd ..
 鉴于没有问题, 因此去除了single中的log信息
 
+现在需要试试看nvm是不是可以了, 但在此之前, 我们还需要一件事, 那就是重新加上条件编译
+mac:
+out
+ubuntu:
+make clean
+make
+cd test
+./single_thread_test # 没有卡住, 顺利执行
+cd ..
 
 
 
