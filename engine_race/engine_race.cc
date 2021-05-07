@@ -103,6 +103,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       }
       data_offset = 0;
       if (posix_fallocate(key_fd, 0, key_file_size) != 0) {
+        log_debug("key_fd:%d,name:%s,suffix:%s", key_fd, name.c_str(), suffix.c_str());
         perror("cannot posix_fallocate");
         return kIOError;
       }

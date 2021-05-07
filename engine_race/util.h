@@ -12,6 +12,7 @@
 #else
 #define log_trace(...) (void)0
 #define log_error(...) (void)0
+#define log_debug(...) (void)0
 #define Assert(...) (void)0
 #endif
 
