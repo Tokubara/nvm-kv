@@ -205,7 +205,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
 RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
-  log_trace("enter Read, key=%s, bucket_id=%u", key.ToString().c_str(),(u32)bucket_id);
+  // log_trace("enter Read, key=%s, bucket_id=%u", key.ToString().c_str(),(u32)bucket_id);
   RetCode ret = kNotFound;
   pthread_rwlock_wrlock(&f.lock);
   auto it = f.map.find(key);
