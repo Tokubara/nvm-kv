@@ -124,7 +124,8 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
     f.data_fd = data_fd;
     f.data_offset = data_offset;
     // 初始化锁
-    pthread_rwlock_init(&f.lock, nullptr);
+    // pthread_rwlock_init(&f.lock, nullptr);
+    f.lock = PTHREAD_MUTEX_INITIALIZER;
   }
   *eptr = engine;
   return kSucc;
@@ -138,7 +139,8 @@ EngineRace::~EngineRace() {
     munmap(f.key_mmap, key_file_size); // 因为的确用不着了, 信息都在index中
     close(f.key_fd);
     close(f.data_fd);
-    pthread_rwlock_destroy(&f.lock);
+    // pthread_rwlock_destroy(&f.lock);
+    pthread_mutex_destroy(&f.lock);
   }
 }
 
@@ -150,7 +152,8 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   // 放入到合适的桶中
   u8 bucket_id = which_bucket(key[0]);
   Bucket &f = buckets[bucket_id];
-  pthread_rwlock_wrlock(&f.lock);
+  // pthread_rwlock_wrlock(&f.lock);
+  pthread_mutex_lock(&f.lock);
   // log_trace("get lock");
   // {{{2 写入data文件, 而且必须先写data
   // struct stat st;
@@ -190,7 +193,8 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   f.key_mmap_cur = f.key_mmap_cur + 4 + key.size()+location_sz;
   // log_debug("finish Write, fd=%d, before data size=%u, f.data_offset=%u, data file size=%u, loc:offset=%u,len=%u, key=%s", f.data_fd, before_size, f.data_offset, (u32)st.st_size, loc.offset, loc.len, key.ToString().c_str());
 
-  pthread_rwlock_unlock(&f.lock);
+  // pthread_rwlock_unlock(&f.lock);
+  pthread_mutex_unlock(&f.lock);
   return kSucc;
 }
 
@@ -200,7 +204,8 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
   Bucket &f = buckets[bucket_id];
   // log_trace("enter Read, key=%s, bucket_id=%u", key.ToString().c_str(),(u32)bucket_id);
   RetCode ret = kNotFound;
-  pthread_rwlock_wrlock(&f.lock);
+  // pthread_rwlock_wrlock(&f.lock);
+  pthread_mutex_lock(&f.lock);
   auto it = f.map.find(key);
   if (it != f.map.end()) {
     Location *loc = it->second;
@@ -210,7 +215,8 @@ RetCode EngineRace::Read(const PolarString &key, std::string *value) {
       ret = kIOError;
     }
   }
-  pthread_rwlock_unlock(&f.lock);
+  // pthread_rwlock_unlock(&f.lock);
+  pthread_mutex_unlock(&f.lock);
   // log_trace("finish Read");
   return ret;
 }
@@ -254,7 +260,8 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
     hi_bid = which_bucket(upper[0]);
   }
   for(u8 i = lo_bid; i <= hi_bid; i++) {
-    pthread_rwlock_rdlock(&buckets[i].lock);
+    // pthread_rwlock_rdlock(&buckets[i].lock);
+    pthread_mutex_lock(&buckets[i].lock);
   }
   u32 total_count = 0; // DEBUG
   for(u8 i = lo_bid; i <= hi_bid; i++) {
@@ -280,7 +287,8 @@ RetCode EngineRace::Range(const PolarString &lower, const PolarString &upper,
   }
   // log_trace("totol count from %u to %u is %u", (u32)lo_bid, (u32)hi_bid, total_count);
   for(u8 i = lo_bid; i <= hi_bid; i++) {
-    pthread_rwlock_unlock(&buckets[i].lock);
+    // pthread_rwlock_unlock(&buckets[i].lock);
+    pthread_mutex_unlock(&buckets[i].lock);
   }
   return kSucc;
 }

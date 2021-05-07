@@ -37,7 +37,7 @@ struct Bucket {
   u8* key_mmap;
   u8* key_mmap_cur;
 
-  pthread_rwlock_t lock;
+  pthread_mutex_t lock;
 };
 const u64 location_sz = sizeof(Location);
 
