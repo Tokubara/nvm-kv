@@ -1,4 +1,8 @@
-out
+alias out_nvm="rsync_all -m u -f ./engine_race -t nvm-kv"
+# alias in="rsync_all -m u -r -f kv -t ../nvm-kv"
+alias out="rsync_all -m u -f ../kv"
+alias in="rsync_all -m u -r -f kv -t ../kv"
+
 ubuntu/kv下(之后也是如此)
 make clean
 make
@@ -6,4 +10,16 @@ cd test
 ./single_thread_test
 cd ..
 
-结果: 可以过single_thread_test.
+结果: 可以过single_thread_test
+
+恢复Makefile, 使得make非dbg的选项, 与dbg的选项不一样. OPT不一样. 但是-I还是保留(也就是说, 还是保留log功能), 只是编译选项不一样, 包括有NDEBUG
+mac:
+out
+ubuntu:
+make clean
+make
+cd test
+./single_thread_test
+cd ..
+结果: 卡住了
+
