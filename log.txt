@@ -219,3 +219,14 @@ p k # 就是想看看那个字符串长什么样子. 得到$1 = {data_ = 0x7ffff
 #define which_bucket(ch) ((ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)))/num_per_bucket)
 根本没有处理, 而且它是宏, 不是函数, 察觉都无从察觉
 
+修改了engine_race.cc
+rm -rf lib
+make dbg
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt
+的确没输出一大堆字符串了, 但还是有段错误
+
+
+
