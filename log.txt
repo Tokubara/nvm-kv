@@ -265,3 +265,24 @@ ngineRace::get_string_from_location(polar_race::i32, polar_race::Location*, std:
 string*): Assertion `r!=0' failed.
 
 
+开个小差, 想看看还能过测例么?
+cd test
+./single_thread_test
+./multi_thread_test
+cd ..
+能
+
+改了改那个报错的信息, 想看看read返回为0到底是不是因为参数为0
+rm -rf lib
+make dbg
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt
+ce.cc:247:ESC[0m fd=10,loc_offset=4096224, value_len=16, st.st_size: 4096000
+bench: /media/psf/Home/Playground/tmp/kv/engine_race/engine_race.cc:248: int polar_race::E
+ngineRace::get_string_from_location(polar_race::i32, polar_race::Location*, std::__cxx11::
+string*): Assertion `false' failed.
+所以这完全已经超过文件的大小了, 可是为什么会超过
+又重复运行了好多次, fd和loc_offset都是略大于4096224, 不过st_size很稳定地是4096000
+

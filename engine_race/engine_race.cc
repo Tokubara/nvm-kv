@@ -240,7 +240,13 @@ char buf[4097];
 
   while (value_len > 0) {
     ssize_t r = read(fd, pos, value_len); // 这是在搞什么鬼
-    Assert(r!=0, "fd=%d,loc_offset=%lu, loc_len=%lu", fd, loc->offset, loc->len);
+    if(r==0) {
+      struct stat st;
+      st.st_size = 0;
+      fstat(fd, &st);
+      log_fatal("fd=%d,loc_offset=%lu, value_len=%lu, st.st_size: %lu", fd, loc->offset, value_len, st.st_size);
+      assert(false);
+    }
     if (r < 0) {
       if (errno == EINTR) {
         log_trace("retry");
