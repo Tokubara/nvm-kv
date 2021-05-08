@@ -91,9 +91,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < KEY_SPACE; i += 100) {
         uint64_t key = i;  // 注意了, key都是整数
         PolarString k((char *)&key, sizeof(uint64_t)); // 相当于key的长度都是8
-        log_trace("before Write");
         engine->Write(k, v);
-        log_trace("after Write");
     }
     log_trace("write finish");
     delete engine;

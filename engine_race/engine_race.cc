@@ -13,8 +13,15 @@
 namespace polar_race {
 
 // #define which_bucket(ch) ((ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)))/num_per_bucket)
-#define which_bucket(ch) ((u8)ch)/num_per_bucket
+// #define which_bucket(ch) ((u8)ch)/num_per_bucket
+
 const u8 num_per_bucket = (256+BUCKET_NUM-1)/BUCKET_NUM;
+
+u8 which_bucket(char ch) {
+  u8 ret = ((u8)ch)/num_per_bucket;
+  Assert(ret<BUCKET_NUM,  "ch=%u,num_per_bucket=%d,ret=%u",(u32)ch,num_per_bucket, (u32)ret);
+  return ret;
+}
 
 RetCode Engine::Open(const std::string& name, Engine** eptr) {
   return EngineRace::Open(name, eptr);
