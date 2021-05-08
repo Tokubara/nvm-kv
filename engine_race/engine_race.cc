@@ -63,7 +63,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
   // log_trace("engine exists");
       // 维护各个字段
       // 再打开数据文件
-      data_fd = open(data_file_name.c_str(), O_RDWR, 0666);
+      data_fd = open(data_file_name.c_str(), O_RDWR | O_APPEND, 0666);
       if (data_fd < 0) {
         log_error("cannot open data file, path=%s, id=%d", name.c_str(), i);
         perror("open data file fail");
