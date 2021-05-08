@@ -316,5 +316,26 @@ bash build.sh
 rm *log.txt
 ./bench 1 80 0 # 得到1,80,0,1413415.815004
 
+现在活好像应该交给sun来干了
+传什么, 直接把bench传过去吧
+rsync_all -m s -f ./bench -t kv_run/
+cd ~/kv_run/bench
+bash run.sh
+在mac下
+cd bench
+rsync_all -m s -r -f kv_run/bench/result.csv
+mv result.csv result_no_ramdisk.csv
+不过我突然想起我还并没有用ramdisk
 
+在sun下:
+mkdir -p /tmp/ramdisk
+sudo mount -t tmpfs -o size=4096m ramdisk /tmp/ramdisk # 奇怪的是, 内存并没有减少
+df -s 
+sudo umount /tmp/ramdisk
+cd ~/kv_run/bench
+./bench 1 80 0
+bash run.sh
+在mac下
+cd bench
+rsync_all -m s -r -f kv_run/bench/result.csv
 
