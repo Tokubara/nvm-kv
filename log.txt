@@ -300,5 +300,21 @@ cd bench
 bash build.sh
 rm *log.txt
 ./bench 1 80 0
-终于不大于0了
+不<0
+
+现在需要把bench改成正式版, 那么make也不能是make dbg了, 也需要改build.sh
+而且engine_race.cc也需要改, 因为之前由于调试改了很多, 但是正常的版本是哪个呢(我之前应该tag一下的). e838155c9fe057c4ae26a4b1cb012860a5cb7e28, 这感觉是最后一次fix bug(除了APPEND之外)
+这并不是最后一次fix bug, 之前还有mmap的类型那里
+engine_race需要改的地方:
+首先是which_bucket, 去掉函数, 改成宏
+去掉小的assert的地方, 好像都与key_mmap_cur有关
+再去掉if(r==0)那一段(就是get_string中)
+rm -rf lib
+make
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 # 得到1,80,0,1413415.815004
+
+
 
