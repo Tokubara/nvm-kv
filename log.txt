@@ -229,4 +229,11 @@ rm *log.txt
 的确没输出一大堆字符串了, 但还是有段错误
 
 
+rm -rf lib
+make dbg
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt
 
+用gdb调一下
