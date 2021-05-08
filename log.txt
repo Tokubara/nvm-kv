@@ -172,6 +172,25 @@ bash build.sh
 ./multi_thread_test
 ./crash_test
 
+在根目录下(都是指kv)
+make
+cd bench
+bash build.sh
+./bench 1 80 0 #输出一大堆随机字符串
+./bench 1 80 0 &> run_error_log.txt # 竟然没有重定向, 还是生成大一堆随机字符串
+
+添加了trace信息
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt # 竟然没有重定向, 还是生成大一堆随机字符串
+17:56:19 ESC[94mTRACEESC[0m ESC[90mbench.cc:83:ESC[0m open engine_path: /tmp/ramdisk/data/
+test-462726333966298
+
+17:56:20 ESC[94mTRACEESC[0m ESC[90mbench.cc:87:ESC[0m open finish
+17:56:20 ESC[94mTRACEESC[0m ESC[90mbench.cc:94:ESC[0m before Write
+因此确定, 第一次write就失败了
+
+
 
 
 

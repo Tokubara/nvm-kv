@@ -3,6 +3,8 @@
 #include "bench_util.h"
 #include "include/engine.h"
 #include "zipf.h"
+#include "mylib.h"
+
 
 #define MAX_THREAD 64
 #define OP_PER_THREAD 200000ull
@@ -46,6 +48,7 @@ void parseArgs(int argc, char **argv) {
     //         readNR, isSkew ? "true" : "false");
 }
 
+// {{{1 key是用mehcached_zipf_next生成的8位无符号数作为key, value都是同一个字符串, 操作OP_PER_THREAD, 有读比例那么大的概率是读
 void bench_thread(int id) {
     struct zipf_gen_state state;
     unsigned int seed = asm_rdtsc() + id;
@@ -60,7 +63,7 @@ void bench_thread(int id) {
         uint64_t key = mehcached_zipf_next(&state);
         PolarString k((char *)&key, sizeof(uint64_t));
         if (isRead) {
-            engine->Read(k, &value);
+            engine->Read(k, &value); // 本来也没有判断正确性
         } else {
             engine->Write(k, v);
         }
@@ -77,20 +80,25 @@ int main(int argc, char **argv) {
 #else
     std::string engine_path = "/dev/dax0.0";
 #endif
-    // printf("open engine_path: %s\n", engine_path.c_str());
+    log_trace("open engine_path: %s\n", engine_path.c_str());
 
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
-
+    log_trace("open finish");
     char v[5000];
     gen_random(v, 4096);
+// {{{1 主线程(此时也没有别的线程), 写了KEY_SPACE个
     for (int i = 0; i < KEY_SPACE; i += 100) {
-        uint64_t key = i;
-        PolarString k((char *)&key, sizeof(uint64_t));
+        uint64_t key = i;  // 注意了, key都是整数
+        PolarString k((char *)&key, sizeof(uint64_t)); // 相当于key的长度都是8
+        log_trace("before Write");
         engine->Write(k, v);
+        log_trace("after Write");
     }
+    log_trace("write finish");
     delete engine;
 
+    // {{{1 执行bench_thread
     std::thread ths[MAX_THREAD];
 
     timespec s, e;
@@ -105,6 +113,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < threadNR; ++i) {
         ths[i].join();
     }
+    log_trace("execute finish");
     clock_gettime(CLOCK_REALTIME, &e);
 
     double us = (e.tv_sec - s.tv_sec) * 1000000 +
