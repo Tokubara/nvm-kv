@@ -190,7 +190,32 @@ test-462726333966298
 17:56:20 ESC[94mTRACEESC[0m ESC[90mbench.cc:94:ESC[0m before Write
 因此确定, 第一次write就失败了
 
+获得有debug信息的libengine.a
+rm -rf lib
+make dbg
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt # 竟然没有重定向, 还是生成大一堆随机字符串
 
+gdb ./bench
+start 1 80 0
+tbr 95
+c
+s # 进入了PolarString
+s # 退出了
 
+重复了上面的过程, 发现
+(gdb) s
+polar_race::PolarString::PolarString (this=0x7fffffffc660,
+    s=0x7fffffffc8d0 "Vhn9ZaO8YaH635H6d7vTdYF2htooLkvOKxxeicTuCSWzsC7z79TFCAkcznik9n50wnSU
+9AKiklilmMYNN024SHXLaELSScNXJlNYMjfNGpXPvfp9zW3ZfYZhKi9Ki5mXrYjqjG7Xitg1nEfBC7lQYGDB1Ia4Hz
+MiVLlIOHnYhCtgc7rt7iWHlYpGwvc5Uh88disIeEKc"...) at ../include/polar_string.h:19
+19        PolarString(const char* s) : data_(s), size_(strlen(s)) { }
 
+frame 1
+p k # 就是想看看那个字符串长什么样子. 得到$1 = {data_ = 0x7fffffffc640 "", size_ = 8}
+我知道问题在哪里了. 因为
+#define which_bucket(ch) ((ch<='9'?ch-'0':(ch<='Z'?ch-'A'+10: (ch-'a'+36)))/num_per_bucket)
+根本没有处理, 而且它是宏, 不是函数, 察觉都无从察觉
 
