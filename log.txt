@@ -110,4 +110,27 @@ bash build.sh
 ./multi_thread_test # 通过
 ./crash_test # 通过
 
+查看bench的运行方法
+ubuntu(nvm根目录下, 之后也如此):
+vim bench/build.sh # std从c++11改为c++17
+有一个问题是, bench也需要改一下, 事实上, 本来的bench是没有的, 这是MP添加的, 可以做成表格
+
+首先, 应该用的是build.sh, 而不是build-real-nvm.sh, 后者没有-DMOCK选项
+    printf("%d thread, %llu operations per thread, time: %lfus\n", threadNR,
+           OP_PER_THREAD, us);
+    printf("throughput %lf operations/s\n",
+           1ull * (threadNR * OP_PER_THREAD) * 1000000 / us);
+问题是, 表格有哪些变量?
+Read, Skew, 线程数
+我打算修改bench.cc, 输出简单, 不需要正则表达式的提取, 然后用R来制表
+但问题是, 我在改谁? 我在改mac的nvm-kv, 但其它部分, 两者应该不一样, 也就是说, 只传bench目录
+mac:
+rsync_all -m u -f ./bench -t nvm-kv
+ubuntu(nvm-kv):
+cd bench
+bash build.sh
+./bench 2 90 0
+打印出了大量随机字符串, 就像这样
+xLCrFVMSg222X7qObmRNbzFIUVinQAlPWsENSrg7DfOiuEvFFg3Xw9PltNSEvNDifXhJP9XNRI7XY2nuHmJE6Kw3rC
+vAI7ks6bmcvCDLHV7JNKN9eCjCAvog3HDPMPBWYyb7m0QqSegmentation fault (core dumped)
 

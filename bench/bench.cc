@@ -1,14 +1,19 @@
 #include <thread>
 
 #include "bench_util.h"
-#include "zipf.h"
 #include "include/engine.h"
+#include "zipf.h"
 
 #define MAX_THREAD 64
 #define OP_PER_THREAD 200000ull
 #define KEY_SPACE (OP_PER_THREAD * 4)
 #define KEY_SIZE 8
-#define VALUE_SIZE 4096
+#define VALUE_SIZE 16
+#define VALUE_BUFFER 5000
+
+static_assert(VALUE_BUFFER > VALUE_SIZE);
+// key size is not configurable.
+static_assert(KEY_SIZE == 8);
 
 using namespace polar_race;
 
@@ -33,22 +38,21 @@ void parseArgs(int argc, char **argv) {
     int k = std::atoi(argv[3]);
     isSkew = k;
 
-    if (threadNR <= 0 || threadNR > 64) usage();
+    if (threadNR <= 0 || threadNR > MAX_THREAD) usage();
     if (readNR < 0 || readNR > 100) usage();
     if (k != 0 && k != 1) usage();
 
-    fprintf(stdout, "thread_num: %d, read ratio: %d%%, isSkew: %s\n", threadNR,
-            readNR, isSkew ? "true" : "false");
+    // fprintf(stdout, "thread_num: %d, read ratio: %d%%, isSkew: %s\n", threadNR,
+    //         readNR, isSkew ? "true" : "false");
 }
 
 void bench_thread(int id) {
-
     struct zipf_gen_state state;
     unsigned int seed = asm_rdtsc() + id;
 
-    char v[5000];
+    char v[VALUE_BUFFER];
     std::string value;
-    gen_random(v, 4096);
+    gen_random(v, VALUE_SIZE);
     mehcached_zipf_init(&state, KEY_SPACE, isSkew ? 0.99 : 0,
                         asm_rdtsc() >> 17);
     for (int i = 0; i < OP_PER_THREAD; ++i) {
@@ -66,10 +70,14 @@ void bench_thread(int id) {
 int main(int argc, char **argv) {
     parseArgs(argc, argv);
 
-    system("mkdir -p data");
+#ifdef MOCK_NVM
+    system("mkdir -p /tmp/ramdisk/data");
     std::string engine_path =
-        std::string("./data/test-") + std::to_string(asm_rdtsc());
-    printf("open engine_path: %s\n", engine_path.c_str());
+        std::string("/tmp/ramdisk/data/test-") + std::to_string(asm_rdtsc());
+#else
+    std::string engine_path = "/dev/dax0.0";
+#endif
+    // printf("open engine_path: %s\n", engine_path.c_str());
 
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
@@ -101,8 +109,12 @@ int main(int argc, char **argv) {
 
     double us = (e.tv_sec - s.tv_sec) * 1000000 +
                 (double)(e.tv_nsec - s.tv_nsec) / 1000;
-    printf("%d thread, %d operations per thread, time: %lfus\n", threadNR, OP_PER_THREAD, us);
-    printf("throughput %lf operations/s\n", 1ull * (threadNR * OP_PER_THREAD) * 1000000 / us);
+    // printf("%d thread, %llu operations per thread, time: %lfus\n", threadNR,
+    //        OP_PER_THREAD, us);
+    // printf("throughput %lf operations/s\n",
+    //        1ull * (threadNR * OP_PER_THREAD) * 1000000 / us);
+    printf("%d,%d,%d,%lf\n", threadNR, readNR, (int)isSkew, 1ull * (threadNR * OP_PER_THREAD) * 1000000 / us); // 输出为: 线程数, 读比例,skew, 吞吐量
+
 
     delete engine;
 
