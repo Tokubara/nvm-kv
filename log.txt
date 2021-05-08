@@ -133,4 +133,45 @@ bash build.sh
 打印出了大量随机字符串, 就像这样
 xLCrFVMSg222X7qObmRNbzFIUVinQAlPWsENSrg7DfOiuEvFFg3Xw9PltNSEvNDifXhJP9XNRI7XY2nuHmJE6Kw3rC
 vAI7ks6bmcvCDLHV7JNKN9eCjCAvog3HDPMPBWYyb7m0QqSegmentation fault (core dumped)
+而且重复打印, 生成的字符串并不一样, 可见这是个随机字符串
+第一个问题, 到底是我的lib的问题, 还是bench的问题. 
+我的看法是, 可以编译一下tth的, 看看会不会有类似的现象, 但要小心位置.
+可不可以在子目录下面直接make, 生成的又在哪里?
+
+如果是子目录直接make:
+ubuntu engine_tth$ make -n
+INCLUDE_PATH=-I./ -I .. -I $MHOME/Playground/lib/ubuntu/header -I/home/parallels/kv/engine
+_tth
+CURDIR=/home/parallels/kv/engine_tth
+rm -f /home/parallels/kv/engine_tth/lib/libengine.a
+ar rv /home/parallels/kv/engine_tth/lib/libengine.a /home/parallels/kv/engine_tth/engine_r
+ace.o
+这里有一件奇怪的事,为什么用make -n, 还会包括header?
+因为我写错了, 改了Makefile
+
+一件不得不说的事, 同步, 我的同步有很大的问题, 干脆也别每次out了, 我们强行规定: 如果要有什么运行. 
+有两个目录也是个困扰.
+
+因此, 我再也受不了需要同步和两个目录的问题了.
+我们首先合并:nvm-kv与kv, 提交也只是提交kv, 免受两个目录的折磨
+
+我们检验的方式是:
+下载全新的nvm包, 把engine_race移过去, 也可以过所有的测试. 以及运行bench.
+做到这一点事实上不需要改代码吧.
+按理说测试本来就是你可以随便测的. 除非你要额外改测例. 但你其实不用是不是.
+所以搞不懂你为啥要合并, 本来就可以做到的事. 你从来就不需要nvm. 除非你代码有问题.
+
+好, 那先看看代码有没有问题
+mac:
+cp -r $MHOME/Playground/tmp/kv/engine_race/ $MHOME/Downloads/nvm-kv/
+cd $MHOME/Downloads/nvm-kv
+make
+cd test
+bash build.sh
+./single_thread_test
+./multi_thread_test
+./crash_test
+
+
+
 
