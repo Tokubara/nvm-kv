@@ -80,11 +80,11 @@ int main(int argc, char **argv) {
 #else
     std::string engine_path = "/dev/dax0.0";
 #endif
-    log_trace("open engine_path: %s\n", engine_path.c_str());
+    // log_trace("open engine_path: %s\n", engine_path.c_str());
 
     RetCode ret = Engine::Open(engine_path, &engine);
     assert(ret == kSucc);
-    log_trace("open finish");
+    // log_trace("open finish");
     char v[5000];
     gen_random(v, 4096);
 // {{{1 主线程(此时也没有别的线程), 写了KEY_SPACE个
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
         PolarString k((char *)&key, sizeof(uint64_t)); // 相当于key的长度都是8
         engine->Write(k, v);
     }
-    log_trace("write finish");
+    // log_trace("write finish");
     delete engine;
 
     // {{{1 执行bench_thread
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < threadNR; ++i) {
         ths[i].join();
     }
-    log_trace("execute finish");
+    // log_trace("execute finish");
     clock_gettime(CLOCK_REALTIME, &e);
 
     double us = (e.tv_sec - s.tv_sec) * 1000000 +
