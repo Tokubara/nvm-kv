@@ -40,7 +40,7 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
   }
   // {{{2 会被用于设置字段的变量
   u32 data_offset = 0;
-  u8 *data = nullptr;
+  void *data = nullptr;
   u8 *cur = nullptr;
   i32 data_fd = -1, key_fd = -1;
 
@@ -75,14 +75,14 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
       // mmap
       // fstat(key_fd, &st);
       // Assert(st.st_size == key_file_size, "st.st_size: %lu,key_file_size: %lu, key_fd=%d", st.st_size, key_file_size, key_fd);
-      data = (u8 *)mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
+      data = mmap(nullptr, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
       if (data == MAP_FAILED) {
         perror("mmap fail");
         return kIOError;
       }
       // 解析index文件
-      u8 *cur = data; // 表示已经读取的index文件的位置
+      cur = (u8*)data; // 表示已经读取的index文件的位置
       while (true) {
         u32 key_sz = *(u32 *)cur;
 
@@ -116,19 +116,20 @@ RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
         return kIOError;
       }
       // 创建index的映射数组, 初始化与映射相关的各个字段
-      data = (u8 *)mmap(NULL, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
+      data = mmap(NULL, key_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
                         key_fd, 0);
-      memset(data, 0, key_file_size);
       if (data == MAP_FAILED) {
         perror("mmap fail");
         return kIOError;
       }
-      cur = data;
+      cur = (u8*)data;
+      memset(cur, 0, key_file_size);
     }
     // {{{2 公共字段
     // 维护各个字段(好像也就4个字段)
-    f.key_mmap = data;
+    f.key_mmap = (u8*)data;
     f.key_mmap_cur = cur;
+    assert((u64)f.key_mmap_cur!=0);
     f.key_fd = key_fd;
     f.data_fd = data_fd;
     f.data_offset = data_offset;
@@ -192,6 +193,7 @@ RetCode EngineRace::Write(const PolarString &key, const PolarString &value) {
   *((Location *)buf_pos) = loc;
   buf_pos += location_sz;
   // 写入key文件(mmap)
+  assert((u64)f.key_mmap_cur!=0);
   memcpy(f.key_mmap_cur, buf, buf_pos - buf); // 这是通过mmap来写的
 
   // 写入map

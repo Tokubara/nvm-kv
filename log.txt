@@ -237,3 +237,31 @@ rm *log.txt
 ./bench 1 80 0 &> run_error_log.txt
 
 用gdb调一下
+gdb ./bench
+start 1 80 0
+c
+
+(gdb) p f.key_mmap_cur
+$1 = (polar_race::u8 *) 0x0
+是0, 这是为何?
+
+添加assert, 发现的确有f.key_mmap_cur==0的情况
+在添加assert的时候, 我不禁怀疑, 其实是mmap失败了, 其实是内存太小了
+rm -rf lib
+make dbg
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 &> run_error_log.txt
+
+bench: /media/psf/Home/Playground/tmp/kv/engine_race/engine_race.cc:132: static polar_race
+::RetCode polar_race::EngineRace::Open(const string&, polar_race::Engine**): Assertion `(u
+64)f.key_mmap_cur!=0' failed``.
+
+报出了新错
+ESC[1;31mfd=14,loc_offset=4096512, loc_len=16ESC[0m
+bench: /media/psf/Home/Playground/tmp/kv/engine_race/engine_race.cc:243: int polar_race::E
+ngineRace::get_string_from_location(polar_race::i32, polar_race::Location*, std::__cxx11::
+string*): Assertion `r!=0' failed.
+
+
