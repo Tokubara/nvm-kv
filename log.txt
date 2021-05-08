@@ -339,3 +339,13 @@ bash run.sh
 cd bench
 rsync_all -m s -r -f kv_run/bench/result.csv
 
+现在生成engine_example试试, 比较比较:
+rm -rf lib
+make TARGET_ENGINE=engine_example
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 # 1,80,0,3665.367386, 这也太给面子了, 这么慢.
+
+我们再试试别的桶数. 问题是如何自动化? 那么就得生成很多个bench
+注意, 我们并不用管所有的
