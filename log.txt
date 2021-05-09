@@ -365,5 +365,25 @@ cd bench
 bash bench_bucket_num.sh 32
 ./bench_32 1 80 0 # 1,80,0,822376.884907, 并且有显示桶数是32, 因此这样改的确可以
 
+在传过去之前, 之前的bench_32是有printf的, 得重新编译, 因此
+cd bench
+bash bench_bucket_num.sh 32
+./bench_32 1 80 0 # 1,80,0,822376.884907, 并且有显示桶数是32, 因此这样改的确可以
+bash run_bucket_num.sh 32 # 能正常运行, 生成的也是result_32.csv
 
-把BUCKET_NUM改回去
+mac下:
+rsync_all -m s -f bench -t kv_run/
+sun下:
+sudo mount -t tmpfs -o size=4096m ramdisk /tmp/ramdisk # 奇怪的是, 内存并没有减少
+df -T # 有ramdisk 
+cd ~/kv_run/bench
+bash run_bucket_num.sh 32 # 完全没有运行结果, 一行也没有, 卡住了, 算了一下, 好像是空间不够, 开个8g算了
+sudo umount /tmp/ramdisk
+sudo mount -t tmpfs -o size=8192m ramdisk /tmp/ramdisk
+df -T # 有ramdisk, 8g 
+cd ~/kv_run/bench
+bash run_bucket_num.sh 32 # 
+在mac下
+cd bench
+rsync_all -m s -r -f kv_run/bench/result_32.csv
+相应添加了ipynb中的代码
