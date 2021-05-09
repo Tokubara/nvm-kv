@@ -387,3 +387,7 @@ bash run_bucket_num.sh 32 #
 cd bench
 rsync_all -m s -r -f kv_run/bench/result_32.csv
 相应添加了ipynb中的代码
+cd bench
+jybc -f r plot.ipynb
+git add plot_ipynb.R
+
