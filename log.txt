@@ -347,5 +347,23 @@ bash build.sh
 rm *log.txt
 ./bench 1 80 0 # 1,80,0,3665.367386, 这也太给面子了, 这么慢.
 
-我们再试试别的桶数. 问题是如何自动化? 那么就得生成很多个bench
-注意, 我们并不用管所有的
+我们再试试别的桶数. 试试32. 但是之前的bench我还想要. 可不可以不要硬编码? 可以. 条件编译.
+那么如何自动化?
+还是在bench下? make怎么传这个变量? 它是作为makefile的一部分存在的.
+需要改makefile. 但是我又不想改makefile. 得改. 先看看有什么不同. 最大的不同的是SUFFIX, 这一点我也不想改. 所以先改本地的makefile. 那边改不改之后再说. 就手动添加BUCKET_NUM, 为此需要改父子Makefile, 为了调试确定桶数设置正确, 也得改engine_race, 好像不用改, 用make dbg, 就有这样的信息. 我懒得.
+bench 下
+cd ..
+rm -rf lib
+make DFLAGS="-DBUCKET_NUM=$1"
+cd bench
+bash build.sh
+rm *log.txt
+./bench 1 80 0 # 1,80,0,3665.367386, 这也太给面子了, 这么慢.
+照着这个草稿, 创建了bench_bucket_num
+用起来就是:
+cd bench
+bash bench_bucket_num.sh 32
+./bench_32 1 80 0 # 1,80,0,822376.884907, 并且有显示桶数是32, 因此这样改的确可以
+
+
+把BUCKET_NUM改回去

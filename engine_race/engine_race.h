@@ -7,7 +7,9 @@
 #include <pthread.h>
 #include <string>
 #include <map>
+#ifndef BUCKET_NUM
 #define BUCKET_NUM 8
+#endif
 
 namespace polar_race {
 

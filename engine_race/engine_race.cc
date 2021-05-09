@@ -24,6 +24,7 @@ Engine::~Engine(){}
 
 RetCode EngineRace::Open(const std::string &name, Engine **eptr) {
   log_trace("Open %s, bucket number: %d", name.c_str(), BUCKET_NUM);
+  // printf("bucket number: %d\n", BUCKET_NUM);
   *eptr = NULL;
   EngineRace *engine = new EngineRace();
   engine->dir_name = name;
