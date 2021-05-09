@@ -391,3 +391,36 @@ cd bench
 jybc -f r plot.ipynb
 git add plot_ipynb.R
 
+mac下
+cd bench
+mv result.csv result_8.csv
+
+本来想把两幅图并成一幅图的, 用子图, 但是不行
+cd bench
+jybc -f r plot.ipynb
+git add plot_ipynb.R
+
+现在是需要改代码包的时候了:
+目的: 合并主MakefileDFLAGS的修改. 不改test文件, 移入bench和engine_race.
+合并Makefile
+bcomp Makefile ~/Downloads/nvm-kv/Makefile # 灵异事件发生了, 发现kv下的Makefile并没有加LDFLGS, 甚至vim buffer也没有加. 不知道怎么回事, 但还是两边都加上了. 
+cp -r bench ~/Downloads/nvm-kv
+cp -r engine_race ~/Downloads/nvm-kv
+cp test/range_test.cc ~/Downloads/nvm-kv/test
+
+ubuntu进入这里.
+ucd Downloads/nvm-kv/
+make clean
+make
+cd test
+bash build.sh # 需要修改range_test, 还需要去掉log内容
+bash run_test.sh
+cd ..
+cd bench
+bash build.sh
+bash run.sh
+
+最后移入reports
+cp -r report ~/Downloads/nvm-kv/
+
+

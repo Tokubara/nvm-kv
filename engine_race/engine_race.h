@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 #ifndef BUCKET_NUM
-#define BUCKET_NUM 8
+#define BUCKET_NUM 32
 #endif
 
 namespace polar_race {
